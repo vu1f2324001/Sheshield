@@ -1,104 +1,151 @@
-# Sheshield
+<div align="center">
 
-> An AI-powered, women-centric government scheme discovery, eligibility verification, and application assistance platform.
+# 🛡️ Sheshield 2.0
 
----
+### AI-Powered Government Benefit Discovery & Application Assistant for Women
 
-## 1. Problem Statement
+<p>
+  <b>Discover. Verify. Decide. Apply.</b>
+</p>
 
-Public welfare initiatives, educational grants, and entrepreneurship loan programs are frequently underutilized by women across India. The barriers are systemic:
+<p>
+  A women-centric intelligent platform that helps users discover relevant government schemes,
+  understand eligibility, prepare documents, and follow the application process.
+</p>
 
-- **Scattered Information Sources:** Schemes are fragmented across dozens of disparate central ministries and state-level department portals.
-- **Opaque Legal Terminology:** Official guidelines use dense administrative jargon, making it difficult for an applicant to determine whether her age, family income, education, or social category qualifies.
-- **Unclear Documentation Pipelines:** Applicants often begin applications without knowing which certificates (e.g., domicile, income, caste) are mandatory versus optional, leading to delays and rejections.
-- **Missing Actionable Pathways:** Finding a scheme name rarely translates to knowing where to register, how to submit evidence, or how to monitor status post-submission.
+<br/>
 
-Existing discovery engines operate primarily as static keyword search directories. They lack contextual reasoning, do not verify whether an applicant matches multi-variable criteria, and fail to translate raw policy rules into step-by-step guidance.
+[![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
+[![Vite](https://img.shields.io/badge/Vite-5-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+[![Node.js](https://img.shields.io/badge/Node.js-18%2B-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Express](https://img.shields.io/badge/Express.js-Backend-000000?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-Database-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com/)
+[![JavaScript](https://img.shields.io/badge/JavaScript-ES6%2B-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
+[![GitHub](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/)
 
----
+<br/>
 
-## 2. Our Solution
+### 🌸 Empowering Women Through Accessible Government Information
 
-Sheshield acts as an intelligent decision-support and workflow-guidance layer between women and public benefit programs. It moves beyond passive search into deterministic and natural-language evaluation.
-
----
-
-## 3. Key Features (Implemented)
-
-### Dual Intake Modalities
-- **Structured Assessment Form:** Direct inputs for demographic coordinates: Age, State of Domicile, Current Occupation, Education Level, Annual Family Income, and Social Category.
-- **Natural Language Parsing Interface:** A conversational text area where users describe their life situation in plain text. The system parses age, state, and occupation cohorts automatically.
-
-### Multi-Dimensional Eligibility & Scoring
-- **Deterministic Rule Engine:** Evaluates multi-factor eligibility across age boundaries, state-level domicile restrictions, annual family income ceilings, and occupational targets.
-- **Explainable Criteria Verification (XAI):** Explicit status breakdowns (`PASS`, `PARTIAL`, `FAIL`) per requirement, showing users exactly why a condition was met or flagged.
-- **Confidence Scoring & Categorization:** Computes an overall match confidence percentage and assigns clear tier ratings:
-  - `High Match` (≥ 80%)
-  - `Possible Match` (50% – 79%)
-  - `Low Match` (< 50%)
-
-### Actionable Guidance & Tracking
-- **Scheme-Specific Document Checklists:** Displays mandatory and optional paperwork required for specific schemes, enabling users to track document readiness locally without uploading sensitive files.
-- **6-Stage Application Timeline:** Step-by-step roadmap from eligibility confirmation and document gathering to portal submission, reference tracking, and DBT verification.
-- **Application Tracker & Reference Notes:** Local storage registry where users store application token numbers and monitor stages (`Not Started` → `Docs Prepared` → `Ready to Apply` → `Submitted` → `Sanctioned`).
-- **Dashboard & Saved Scheme Registry:** Overview of analyzed opportunities, saved schemes, and in-progress applications.
-
-### Reliability & Regulatory Safety
-- **Judge Demo Mode:** Instant, pre-loaded profile (21-year-old engineering student from Maharashtra) for fast hackathon evaluations without manual input.
-- **Authoritative Links Only:** Routes users directly to verified official platforms (e.g., National Scholarship Portal, JanSamarth, Aaple Sarkar).
-- **Non-Authoritative Advisory Notice:** Clear system disclosures emphasizing that results are AI-assisted estimates and formal sanctions remain with official departmental authorities.
+</div>
 
 ---
 
-## 4. How Sheshield Works
+# 🌷 Table of Contents
 
-When a user submits a situation:
-
-> *"I am a 21-year-old engineering student from Maharashtra looking for financial support for my college fees."*
-
-1. **Intent & Coordinate Extraction:** The input layer detects key entities:
-   - `Age`: 21
-   - `State`: Maharashtra
-   - `Occupation`: Student
-   - `Education`: Graduate / Technical
-   - `Implied Need`: Tuition / Financial Aid
-2. **Registry Filtering:** The scheme discovery engine pulls candidate schemes (e.g., *AICTE Pragati Scholarship for Girls*, *Majhi Kanya Bhagyashree*, *Mudra Mahila Yojana*).
-3. **Criteria Execution:** The evaluation module checks the extracted coordinates against the scheme's parameter matrix:
-   - *Age Limit Check:* $21 \in [16, 25]$ $\rightarrow$ `PASS` (+25 pts)
-   - *Domicile Check:* Maharashtra matches scheme eligibility $\rightarrow$ `PASS` (+25 pts)
-   - *Income Ceiling Check:* Stated family income within maximum limit $\rightarrow$ `PASS` (+25 pts)
-   - *Occupation Check:* User is a student matching target group $\rightarrow$ `PASS` (+25 pts)
-4. **Confidence Computation:** Scores are summed and normalized into a composite score (e.g., 92% – `High Match`).
-5. **Breakdown & Checklist Generation:** The system prepares a transparent audit trail with status indicators and populates the scheme's document requirements (e.g., 10th/12th Marksheet, Income Certificate, College Admission Slip).
-6. **Action Pipeline Creation:** An interactive 6-step roadmap is generated with links to official portals (e.g., `scholarships.gov.in`).
+- [About Sheshield](#-about-sheshield)
+- [Problem Statement](#-problem-statement)
+- [Our Solution](#-our-solution)
+- [Why Sheshield?](#-why-sheshield)
+- [Key Features](#-key-features)
+- [How Sheshield Works](#-how-sheshield-works)
+- [AI Agent Workflow](#-ai-agent-workflow)
+- [System Architecture](#️-system-architecture)
+- [User Journey](#-user-journey)
+- [Core Modules](#-core-modules)
+- [Eligibility Engine](#️-eligibility-engine)
+- [Explainable AI](#-explainable-ai)
+- [Scheme Discovery](#-scheme-discovery)
+- [Document Assistance](#-document-assistance)
+- [Application Assistance](#-application-assistance)
+- [Technology Stack](#️-technology-stack)
+- [Project Structure](#-project-structure)
+- [Frontend Architecture](#-frontend-architecture)
+- [Backend Architecture](#-backend-architecture)
+- [Database](#️-database)
+- [API Layer](#-api-layer)
+- [Privacy & Safety](#-privacy--safety)
+- [Demo Flow](#-demo-flow)
+- [Installation](#-installation)
+- [Environment Variables](#-environment-variables)
+- [Running the Project](#-running-the-project)
+- [Example Use Case](#-example-use-case)
+- [Innovation](#-innovation)
+- [Current Status](#-current-status)
+- [Limitations](#-limitations)
+- [Future Scope](#-future-scope)
+- [Research & Patent Perspective](#-research--patent-perspective)
+- [Contributors](#-contributors)
+- [License](#-license)
+- [Disclaimer](#️-disclaimer)
 
 ---
 
-## 5. System & Agent Architecture
+# 🌸 About Sheshield
 
-Sheshield uses an orchestrator-centric pattern to coordinate between natural-language understanding, eligibility evaluation, and application assistance modules.
+**Sheshield 2.0** is a women-centric intelligent government-benefit discovery and application-assistance platform.
 
-```mermaid
-flowchart TD
-    User([User / Applicant]) --> UI[Client UI: React + Tailwind]
-    UI --> Router{Input Mode}
-    
-    Router -->|Natural Language Text| NLPAgent[Natural Language Parser / LLM Service]
-    Router -->|Form Inputs| Orchestrator[Sheshield Orchestration Controller]
-    
-    NLPAgent -->|Extracted Profile Attributes| Orchestrator
-    
-    Orchestrator --> DiscoveryAgent[Scheme Discovery Module]
-    DiscoveryAgent --> DB[(Scheme Knowledge Base / MongoDB)]
-    DB --> DiscoveryAgent
-    DiscoveryAgent -->|Candidate Schemes| Orchestrator
-    
-    Orchestrator --> ReasoningAgent[Eligibility Reasoning Engine]
-    ReasoningAgent -->|Evaluated Breakdown & Scores| Orchestrator
-    
-    Orchestrator --> AssistAgent[Action Plan & Document Assistant]
-    AssistAgent -->|Checklists & Step Sequences| Orchestrator
-    
-    Orchestrator --> UI
-    UI --> Tracker[Local Application Tracker]
-    UI --> ExternalPortal([Official Gov Portals: NSP / JanSamarth / State])
+The objective of Sheshield is to reduce the gap between:
+
+> **A woman's need → Relevant government scheme → Eligibility understanding → Required documents → Application guidance**
+
+Traditional scheme discovery often assumes that the user already knows the **name of the scheme**.
+
+Sheshield follows a different approach.
+
+Instead of asking:
+
+> "Which scheme are you searching for?"
+
+Sheshield is designed around:
+
+> **"What do you need help with?"**
+
+The system can then use the user's need and profile information to identify potentially relevant schemes and explain the result in a simple, understandable manner.
+
+---
+
+# 🎯 Problem Statement
+
+India has numerous government welfare, scholarship, financial assistance, entrepreneurship, employment and women-centric schemes.
+
+However, discovering and applying for the correct scheme can be difficult.
+
+### Major challenges faced by users
+
+| Problem | Description |
+|---|---|
+| 🔎 Scheme Discovery | Users may not know the exact name of the scheme they need |
+| 📚 Information Overload | Government information is distributed across multiple portals |
+| ⚖️ Eligibility Confusion | Age, income, state, education and category conditions can be difficult to understand |
+| 📋 Documentation | Applicants may not know which documents are required |
+| 🧭 Application Process | Users may struggle to understand where and how to apply |
+| 🌐 Language Barrier | Official terminology can be difficult for users to understand |
+| ⏳ Time Consumption | Manually checking multiple schemes is slow |
+| ❓ Lack of Explanation | Search results may not explain why a scheme matches the applicant |
+
+---
+
+# 💡 Our Solution
+
+Sheshield acts as an **intelligent bridge between the user and government-benefit information**.
+
+The system is designed to combine:
+
+```text
+👩 User
+   │
+   ▼
+💬 Natural Language / Structured Profile
+   │
+   ▼
+🧠 Need & Profile Understanding
+   │
+   ▼
+🔍 Scheme Discovery
+   │
+   ▼
+⚖️ Eligibility Analysis
+   │
+   ▼
+📊 Match & Recommendation
+   │
+   ▼
+📋 Document Checklist
+   │
+   ▼
+🗺️ Application Action Plan
+   │
+   ▼
+🏛️ Official Government Source / Portal
