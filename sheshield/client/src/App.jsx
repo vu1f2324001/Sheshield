@@ -387,7 +387,6 @@ export default function App() {
           </div>
         )}
 
-        {/* VIEW 2: SIGN IN / SIGN UP DUAL MODAL */}
         {activeView === 'signin' && !currentUser && (
           <div className="max-w-md mx-auto bg-[#161f38] border border-slate-700 p-6 sm:p-8 rounded-3xl shadow-2xl space-y-5 my-4">
             <div className="flex bg-[#0d1321] p-1 rounded-2xl border border-slate-800">
@@ -485,3 +484,115 @@ export default function App() {
             </div>
           </div>
         )}
+        {selectedScheme && !activeWorkflow && currentUser && (
+          <div className="bg-[#161f38] border border-slate-700 rounded-3xl p-5 sm:p-7 shadow-2xl space-y-5">
+            <button onClick={() => setSelectedScheme(null)} className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-white font-bold">
+              <ArrowLeft size={14} /> Back to Schemes List
+            </button>
+
+            <div className="border-b border-slate-700 pb-3">
+              <span className="text-[10px] text-purple-400 font-bold uppercase block">Applicant: {currentUser.fullName}</span>
+              <h3 className="text-xl font-black text-white">{selectedScheme.name}</h3>
+              <p className="text-xs text-slate-300 mt-0.5">🔒 Upload the required verified documents for this scheme:</p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {selectedScheme.requiredDocs.map((doc) => {
+                const uploaded = uploadedDocs[doc.id];
+                const error = docErrors[doc.id];
+                return (
+                  <div key={doc.id} className={'p-3.5 rounded-xl border flex flex-col justify-between space-y-2 ' + (error ? 'bg-rose-950/40 border-rose-500/80' : uploaded ? 'bg-emerald-500/10 border-emerald-500/40' : 'bg-[#0d1321] border-slate-700')}>
+                    <div className="flex justify-between items-start">
+                      <h4 className="font-bold text-xs text-white">{doc.name}</h4>
+                      {uploaded ? <span className="text-[10px] bg-emerald-500/20 text-emerald-300 font-bold px-2 py-0.5 rounded-full flex items-center gap-1"><CheckCircle size={10} /> Verified</span> : error ? <span className="text-[10px] bg-rose-500/20 text-rose-300 font-bold px-2 py-0.5 rounded-full flex items-center gap-1"><XCircle size={10} /> Rejected</span> : <span className="text-[10px] bg-amber-500/20 text-amber-300 font-bold px-2 py-0.5 rounded-full">Required</span>}
+                    </div>
+                    {error && <div className="p-1.5 bg-rose-950/80 border border-rose-500/50 rounded-lg text-[10px] text-rose-200">{error}</div>}
+                    {uploaded ? (
+                      <div className="bg-slate-800 p-2 rounded-lg border border-emerald-500/30 flex justify-between items-center text-xs">
+                        <span className="font-medium text-emerald-300 truncate">{uploaded.name}</span>
+                        <label className="text-purple-400 text-[10px] font-bold cursor-pointer hover:underline ml-2">Replace<input type="file" className="hidden" accept="image/*,.pdf,.txt" onChange={e => handleUploadFile(doc, e.target.files[0])} /></label>
+                      </div>
+                    ) : (
+                      <label className="py-2 border-2 border-dashed border-purple-500/40 bg-purple-500/10 text-purple-300 text-center font-bold text-xs rounded-lg cursor-pointer block">
+                        <UploadCloud size={13} className="inline mr-1" /> Upload {doc.name}
+                        <input type="file" className="hidden" accept="image/*,.pdf,.txt" onChange={e => handleUploadFile(doc, e.target.files[0])} />
+                      </label>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {Object.keys(extractedData).length > 0 && (
+              <div className="p-3 bg-[#0d1321] border border-purple-500/40 rounded-xl space-y-1.5">
+                <span className="text-xs font-bold text-purple-300 flex items-center gap-1"><ScanText size={14} /> Verified Extracted Parameters:</span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-mono">
+                  {Object.entries(extractedData).map(([k, v]) => (
+                    <div key={k} className="p-2 bg-slate-800 rounded-lg border border-slate-700">
+                      <span className="text-slate-400 block text-[9px]">{k}</span>
+                      <span className="font-bold text-emerald-400 text-xs">{v}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="pt-3 flex flex-wrap justify-between items-center gap-3 border-t border-slate-700">
+              <button onClick={handleAutoAttachDemo} className="text-xs text-purple-400 font-bold hover:underline">⚡ Auto-Attach Demo Verified Docs</button>
+              <button onClick={handleStartAgentApply} disabled={selectedScheme.requiredDocs.some(d => !uploadedDocs[d.id] || uploadedDocs[d.id].status !== 'VERIFIED')} className={'px-5 py-2.5 font-bold text-xs rounded-xl transition ' + (selectedScheme.requiredDocs.every(d => uploadedDocs[d.id] && uploadedDocs[d.id].status === 'VERIFIED') ? 'bg-purple-600 text-white cursor-pointer' : 'bg-slate-800 text-slate-500 cursor-not-allowed')}>
+                Launch Portal Auto-Fill for {currentUser.fullName.split(' ')[0]} →
+              </button>
+            </div>
+          </div>
+        )}
+
+        {activeWorkflow && (
+          <div className="bg-slate-950 border border-purple-500/50 rounded-2xl p-5 shadow-2xl space-y-4">
+            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+              <h3 className="text-base font-black text-white">{activeWorkflow.name} — Real-time Filling</h3>
+              <button onClick={() => { setActiveWorkflow(null); setSelectedScheme(null); }} className="text-xs text-slate-400 hover:text-white px-2.5 py-1 bg-slate-800 rounded-lg">Close ✕</button>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+              <div className="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-2 text-xs font-mono">
+                <span className="text-purple-400 font-bold block"><Bot size={14} className="inline mr-1" /> Agent Terminal</span>
+                <div className="text-emerald-400"><Check size={13} className="inline mr-1" /> Beneficiary authenticated: {currentUser?.fullName}</div>
+                {simStep >= 2 && <div className="text-purple-300"><Check size={13} className="inline mr-1" /> Auto-populating verified portal parameters</div>}
+                {simStep >= 3 && <div className="p-2 bg-amber-500/15 border border-amber-500/30 rounded-lg text-amber-300">[HITL] Ready for submission. Enter Gateway OTP.</div>}
+                {simStep === 4 && <div className="p-2 bg-emerald-500/15 border border-emerald-500/30 rounded-lg text-emerald-300 font-bold">✓ Application submitted officially!</div>}
+              </div>
+
+              <div className="lg:col-span-7 bg-white text-slate-900 rounded-xl p-4 space-y-3 shadow-lg">
+                <div className="border-b pb-1.5 flex justify-between items-center"><h4 className="font-bold text-xs">{activeWorkflow.name}</h4><span className="text-[10px] font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded">Govt Portal Gateway</span></div>
+                <div className="space-y-2">
+                  {filledFields.map((f, idx) => (
+                    <div key={idx}><label className="text-[10px] text-slate-500 block">{f.label}</label><div className="p-1.5 rounded text-xs font-mono border bg-purple-50 border-purple-300 font-bold">{f.val}</div></div>
+                  ))}
+                </div>
+                {simStep === 3 && (
+                  <form onSubmit={(e) => { e.preventDefault(); if (portalOtp) { setSimStep(4); setApplicationRef('MH-SHIELD-2026-' + Math.floor(100000 + Math.random() * 900000)); } }} className="p-3 bg-amber-50 border border-amber-300 rounded-lg space-y-2">
+                    <span className="text-xs font-bold text-amber-900 block"><KeyRound size={13} className="inline mr-1" /> Complete Gateway OTP Verification:</span>
+                    <div className="flex gap-2">
+                      <input type="password" required placeholder="123456" value={portalOtp} onChange={e => setPortalOtp(e.target.value)} className="p-1.5 border rounded text-xs bg-white w-32 font-mono outline-none" />
+                      <button type="submit" className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded">Verify & Submit</button>
+                    </div>
+                  </form>
+                )}
+                {simStep === 4 && (
+                  <div className="p-2.5 bg-emerald-50 border border-emerald-300 rounded-lg text-xs">
+                    <span className="font-bold text-emerald-900 block"><CheckCircle size={14} className="inline mr-1" /> Application Submitted!</span>
+                    <div>Application Reference: <b className="font-mono text-slate-900">{applicationRef}</b></div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </main>
+
+      <footer className="bg-[#111827] border-t border-slate-800 py-3 text-center text-xs text-slate-400">
+        Sheshield 2.0 • Autonomous Civic AI Platform for All Women
+      </footer>
+    </div>
+  );
+}
