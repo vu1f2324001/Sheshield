@@ -160,44 +160,34 @@ export default function App() {
     setAuthError('');
   };
 
-  const handleGoogleSchemeSearch = (e) => {
+    const handleGoogleSchemeSearch = async (e) => {
     if (e) e.preventDefault();
     const rawQuery = (aiPromptInput || '').trim();
-    if (!rawQuery) {
-      setSchemes(ALL_MAHARASHTRA_SCHEMES);
-      setSearchStatus('');
-      setLiveGoogleUrl('');
-      return;
-    }
+    if (!rawQuery) return;
 
     setIsSearching(true);
-    const googleQueryUrl = 'https://www.google.com/search?q=' + encodeURIComponent(rawQuery + ' maharashtra government scheme for women site:gov.in OR site:nic.in OR site:maharashtra.gov.in');
-    setLiveGoogleUrl(googleQueryUrl);
+    setSearchStatus('Connecting to Google live web results for: "' + rawQuery + '"...');
 
-    const qLower = rawQuery.toLowerCase();
-    const isWidowQuery = qLower.includes('viddava') || qLower.includes('vidhwa') || qLower.includes('vidhava') || qLower.includes('widow') || qLower.includes('विधवा') || (qLower.includes('bai') && qLower.includes('sathi'));
+    try {
+      const res = await fetch('http://localhost:5000/api/live-search-schemes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: rawQuery })
+      });
+      const data = await res.json();
 
-    setTimeout(() => {
-      if (isWidowQuery) {
-        const widowScheme = ALL_MAHARASHTRA_SCHEMES.filter(s => s.id === 'SCHEME_WIDOW_PENSION');
-        setSchemes(widowScheme);
-        setSearchStatus('✓ AI ने विधवा महिलांसाठी "Indira Gandhi / Sanjay Gandhi Widow Pension" योजना शोधली आहे!');
+      if (data?.schemes && data.schemes.length > 0) {
+        setSchemes(data.schemes);
+        setSearchStatus('✓ Google & MahaDBT वरून ' + data.schemes.length + ' लाईव्ह शासकीय योजना मिळाल्या!');
       } else {
-        const tokens = qLower.split(/[\s,]+/);
-        const filtered = ALL_MAHARASHTRA_SCHEMES.filter(sch => {
-          const text = (sch.name + ' ' + sch.desc + ' ' + (sch.keywords || []).join(' ')).toLowerCase();
-          return tokens.some(t => t.length > 2 && text.includes(t));
-        });
-        if (filtered.length > 0) {
-          setSchemes(filtered);
-          setSearchStatus('✓ "' + rawQuery + '" साठी योग्य योजना सापडल्या:');
-        } else {
-          setSchemes(ALL_MAHARASHTRA_SCHEMES);
-          setSearchStatus('✓ उपलब्ध शासकीय योजनांची यादी:');
-        }
+        setSearchStatus('गुगल सर्च पूर्ण झाले. खालील लिंकवरून अधिकृत पोर्टल पाहू शकता.');
       }
+    } catch (err) {
+      console.error(err);
+      setSearchStatus('कृपया Backend सुरू आहे का ते तपासा (Port 5000).');
+    } finally {
       setIsSearching(false);
-    }, 250);
+    }
   };
   const handleUploadFile = (docObj, file) => {
     if (!file) return;
