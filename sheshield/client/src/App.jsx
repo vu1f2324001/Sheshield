@@ -64,7 +64,7 @@ export default function App() {
       name: 'Indira Gandhi / Sanjay Gandhi Widow Pension Scheme',
       portalName: 'Social Justice Dept (Maharashtra / GoI)',
       grant: '₹1,500 / Month Direct DBT',
-      desc: 'Monthly financial pension & social security assistance for destitute & widow women.',
+      desc: 'Monthly financial pension & social security assistance for destitute & widow women (विधवा महिलांसाठी मासिक पेन्शन सहाय्य).',
       keywords: ['viddava', 'vidhwa', 'vidhava', 'widow', 'bai', 'pension', 'niradhar', 'sanjay gandhi', 'निराधार', 'विधवा'],
       requiredDocs: [
         { id: 'aadhaar', name: 'Aadhaar Card', allowed: ['aadhaar', 'adhar', 'uidai'], disallowed: ['marksheet', 'apaar'] },
@@ -161,7 +161,7 @@ export default function App() {
 
   const handleGoogleSchemeSearch = async (e) => {
     if (e) e.preventDefault();
-    const query = aiPromptInput.trim();
+    const query = (aiPromptInput || '').trim().toLowerCase();
     if (!query) {
       setSchemes(ALL_MAHARASHTRA_SCHEMES);
       setSearchStatus('');
@@ -169,23 +169,23 @@ export default function App() {
     }
 
     setIsSearching(true);
-    setSearchStatus('Analyzing query: \"' + query + '\"...');
+    setSearchStatus('Analyzing query: \"' + aiPromptInput + '\"...');
 
-    const qLower = query.toLowerCase();
-    const matched = ALL_MAHARASHTRA_SCHEMES.filter(sch => 
-      sch.keywords?.some(k => qLower.includes(k) || k.includes(qLower)) ||
-      sch.name.toLowerCase().includes(qLower) ||
-      sch.desc.toLowerCase().includes(qLower)
-    );
+    // Smart Keyword Match (Widow / Pension / Student / Loan)
+    const tokens = query.split(/[\s,]+/);
+    const matched = ALL_MAHARASHTRA_SCHEMES.filter(sch => {
+      const allText = (sch.name + ' ' + sch.desc + ' ' + (sch.keywords || []).join(' ')).toLowerCase();
+      return tokens.some(t => t.length > 2 && allText.includes(t));
+    });
 
     try {
       const res = await fetch('http://localhost:5000/api/search-schemes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: query })
+        body: JSON.stringify({ query: aiPromptInput })
       });
       const data = await res.json();
-      if (data?.schemes?.length > 0) {
+      if (data && Array.isArray(data.schemes) && data.schemes.length > 0) {
         setSchemes(data.schemes);
         setSearchStatus('✓ AI & Google live search found ' + data.schemes.length + ' schemes!');
         setIsSearching(false);
@@ -193,12 +193,13 @@ export default function App() {
       }
     } catch (err) {}
 
+    // Fallback: guaranteed safe state update
     if (matched.length > 0) {
       setSchemes(matched);
-      setSearchStatus('✓ Found matching government schemes for \"' + query + '\"');
+      setSearchStatus('✓ Found matching government schemes for: \"' + aiPromptInput + '\"');
     } else {
       setSchemes(ALL_MAHARASHTRA_SCHEMES);
-      setSearchStatus('✓ Showing standard welfare programs');
+      setSearchStatus('✓ Showing verified government schemes:');
     }
     setIsSearching(false);
   };
@@ -368,7 +369,7 @@ export default function App() {
             <div className="space-y-3">
               <h3 className="text-base sm:text-lg font-black text-white">Available & Recommended Welfare Schemes</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {schemes.map((sch) => (
+                {(schemes || []).map((sch) => (
                   <div key={sch.id} className="bg-[#161f38] border border-slate-700/80 hover:border-purple-500/50 rounded-2xl p-5 shadow-lg flex flex-col justify-between space-y-4 transition">
                     <div className="space-y-2">
                       <span className="text-[9px] font-bold text-purple-300 bg-purple-500/15 border border-purple-500/20 px-2 py-0.5 rounded-full inline-block">{sch.portalName}</span>
