@@ -1,43 +1,46 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sheshield 2.0</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              sheshield: {
-                rose: '#E85D8E',
-                plum: '#5B214E',
-                purple: '#7C3AED',
-                lavender: '#F3E8FF',
-                blush: '#FCE7F3',
-                cream: '#FFF9F5',
-                softRose: '#FFF1F5',
-                textDark: '#241A24',
-                textMuted: '#6B6170',
-                border: '#E9DDE6',
-              }
-            },
-            fontFamily: {
-              sans: ['Inter', 'system-ui', 'sans-serif'],
-              heading: ['Plus Jakarta Sans', 'Poppins', 'sans-serif'],
-            }
-          }
-        }
+
+    <script type="text/javascript">
+      function googleTranslateElementInit() {
+        new google.translate.TranslateElement({
+          pageLanguage: 'en',
+          includedLanguages: 'en,mr,hi,bn,gu,ta,te,kn,pa,ml,or,as,ur,sa,ne,kok,mai,sd,ks',
+          autoDisplay: false
+        }, 'google_translate_element');
       }
     </script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+    <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+    <style>
+      .goog-te-banner-frame.skiptranslate, iframe.skiptranslate {
+        display: none !important;
+      }
+      body {
+        top: 0px !important;
+      }
+      #google_translate_element {
+        position: absolute !important;
+        left: -9999px !important;
+        top: -9999px !important;
+        visibility: hidden !important;
+      }
+      .goog-tooltip, .goog-tooltip:hover {
+        display: none !important;
+      }
+      .goog-text-highlight {
+        background: transparent !important;
+        box-shadow: none !important;
+      }
+    </style>
   </head>
-  <body class="bg-[#FFF9F5]">
+  <body>
+    <div id="google_translate_element"></div>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
