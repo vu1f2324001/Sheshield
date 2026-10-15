@@ -614,7 +614,7 @@ export default function App() {
                 )}
                 {simStep === 4 && (
                   <div className="p-2.5 bg-emerald-50 border border-emerald-300 rounded-lg text-xs">
-                    <span className="font-bold text-emerald-900 block"><CheckCircle size={14} शेअर्स सबमिट झाले!</span>
+                    <span className="font-bold text-emerald-900 block"><CheckCircle size={14} className="inline mr-1" /> Application Submitted!</span>
                     <div>Application Reference: <b className="font-mono text-slate-900">{applicationRef}</b></div>
                   </div>
                 )}
