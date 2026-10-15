@@ -172,7 +172,7 @@ export default function App() {
     setAuthError('');
   };
 
-                  const handleGoogleSchemeSearch = async (e) => {
+                    const handleGoogleSchemeSearch = async (e) => {
     if (e) e.preventDefault();
     const rawQuery = (aiPromptInput || '').trim();
     if (!rawQuery) {
@@ -183,109 +183,31 @@ export default function App() {
 
     setIsSearching(true);
     setSchemes([]);
-    setSearchStatus('AI Agent is autonomously researching Maharashtra welfare schemes for: "' + rawQuery + '"...');
+    setSearchStatus('Web Agent is actively researching live government portals for: "' + rawQuery + '"...');
+
+    const googleQueryUrl = 'https://www.google.com/search?q=' + encodeURIComponent(rawQuery + ' maharashtra government scheme site:gov.in OR site:nic.in OR site:mahadbt.maharashtra.gov.in');
+    setLiveGoogleUrl(googleQueryUrl);
 
     try {
-      // 1. Ask Backend AI Scheme Discovery Agent
-      let res = await fetch('/api/ai-discover-schemes', {
+      const res = await fetch('/api/autonomous-research-schemes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query: rawQuery })
       });
-      let data = await res.json();
+      const data = await res.json();
 
-      if (data?.schemes && data.schemes.length > 0) {
+      if (data && Array.isArray(data.schemes) && data.schemes.length > 0) {
         setSchemes(data.schemes);
-        setSearchStatus('✓ AI Agent found ' + data.schemes.length + ' official live schemes for "' + rawQuery + '"');
-        setIsSearching(false);
-        return;
+        setSearchStatus('✓ Live web research complete! Found ' + data.schemes.length + ' official schemes matching your requirements.');
+      } else {
+        setSearchStatus('No direct live portals returned. You can browse Google directly.');
       }
     } catch (err) {
-      console.log('Server fetch fallback to in-browser AI engine...');
+      console.error('Autonomous search call error:', err);
+      setSearchStatus('Network error occurred during live research.');
+    } finally {
+      setIsSearching(false);
     }
-
-    // 2. In-Browser Autonomous AI Fallback
-    const q = rawQuery.toLowerCase();
-    let discovered = [];
-
-    if (q.includes('student') || q.includes('scholarship') || q.includes('college') || q.includes('fee')) {
-      discovered = [
-        {
-          id: 'AI_S_1',
-          name: 'Pragati Scholarship Scheme for Girls (Degree/Diploma)',
-          portalName: 'dte.maharashtra.gov.in (Autonomous AI Search)',
-          grant: '₹50,000 / Year Direct DBT Grant',
-          desc: 'Higher and technical education scholarship for eligible female college students.',
-          requiredDocs: [
-            { id: 'aadhaar', name: 'Aadhaar Card' },
-            { id: 'income_cert', name: 'Income Certificate (Tehsildar)' },
-            { id: 'bonafide', name: 'College Admission Bonafide' },
-            { id: 'passbook', name: 'Bank Passbook (DBT Active)' }
-          ]
-        },
-        {
-          id: 'AI_S_2',
-          name: 'Post Matric Scholarship for Girls - MahaDBT',
-          portalName: 'mahadbt.maharashtra.gov.in (Autonomous AI Search)',
-          grant: '100% Tuition Fee Waiver & Monthly Stipend',
-          desc: 'Reimbursement of exam and tuition fees directly transferred to Aadhaar seeded accounts.',
-          requiredDocs: [
-            { id: 'aadhaar', name: 'Aadhaar Card' },
-            { id: 'caste_cert', name: 'Caste & Validity Certificate' },
-            { id: 'income_cert', name: 'Income Certificate' },
-            { id: 'passbook', name: 'Bank Passbook (DBT Active)' }
-          ]
-        },
-        {
-          id: 'AI_S_3',
-          name: 'Girl\'s Free Higher Education Scheme (DHE Pune)',
-          portalName: 'dhepune.gov.in (Autonomous AI Search)',
-          grant: '100% Free College Tuition for Girls',
-          desc: 'Full financial waiver for girls pursuing degree and engineering courses in Maharashtra.',
-          requiredDocs: [
-            { id: 'aadhaar', name: 'Aadhaar Card' },
-            { id: 'domicile', name: 'Maharashtra Domicile Certificate' },
-            { id: 'passbook', name: 'Bank Passbook (DBT Active)' }
-          ]
-        }
-      ];
-    } else if (q.includes('widow') || q.includes('viddava') || q.includes('pension')) {
-      discovered = [
-        {
-          id: 'AI_W_1',
-          name: 'Sanjay Gandhi Niradhar Widow Pension Scheme',
-          portalName: 'sjsa.maharashtra.gov.in (Autonomous AI Search)',
-          grant: '₹1,500 / Month Direct DBT Bank Transfer',
-          desc: 'Monthly state pension support for widow and destitute women in Maharashtra.',
-          requiredDocs: [
-            { id: 'aadhaar', name: 'Aadhaar Card' },
-            { id: 'death_cert', name: 'Husband Death Certificate' },
-            { id: 'income_cert', name: 'Income Certificate (Tehsildar)' },
-            { id: 'passbook', name: 'Bank Passbook (DBT Active)' }
-          ]
-        }
-      ];
-    } else {
-      const title = rawQuery.charAt(0).toUpperCase() + rawQuery.slice(1);
-      discovered = [
-        {
-          id: 'AI_GEN_' + Date.now(),
-          name: title + ' State Welfare & Subsidy Scheme',
-          portalName: 'mahadbt.maharashtra.gov.in (Autonomous AI Search)',
-          grant: 'Direct DBT Subsidy / Financial Assistance',
-          desc: 'Autonomous AI detected government empowerment initiative for ' + rawQuery + '.',
-          requiredDocs: [
-            { id: 'aadhaar', name: 'Aadhaar Card' },
-            { id: 'income_cert', name: 'Income Certificate' },
-            { id: 'passbook', name: 'Bank Passbook (DBT Active)' }
-          ]
-        }
-      ];
-    }
-
-    setSchemes(discovered);
-    setSearchStatus('✓ AI Agent autonomously generated ' + discovered.length + ' verified live schemes for "' + rawQuery + '"');
-    setIsSearching(false);
   };
   const handleUploadFile = (docObj, file) => {
     if (!file) return;
