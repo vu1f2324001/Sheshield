@@ -59,62 +59,7 @@ export default function App() {
     }
     setTimeout(() => { window.location.reload(); }, 150);
   };
-  const ALL_MAHARASHTRA_SCHEMES = [
-    {
-      id: 'SCHEME_WIDOW_PENSION',
-      name: 'Indira Gandhi / Sanjay Gandhi Niradhar Widow Pension Scheme',
-      portalName: 'Social Justice Dept (Govt of Maharashtra)',
-      grant: '₹1,500 / Month Direct DBT Support',
-      desc: 'Monthly financial pension & social security assistance for widow, destitute, and divorced women (विधवा महिलांसाठी मासिक पेन्शन सहाय्य).',
-      keywords: ['viddava', 'vidhava', 'vidhwa', 'widow', 'bai', 'sathi', 'pension', 'niradhar', 'sanjay gandhi', 'निराधार', 'विधवा', 'पेन्शन'],
-      requiredDocs: [
-        { id: 'aadhaar', name: 'Aadhaar Card', allowed: ['aadhaar', 'adhar', 'uidai'], disallowed: ['marksheet', 'apaar'] },
-        { id: 'death_cert', name: 'Husband Death Certificate', allowed: ['death', 'मृत्यू', 'mrutyu'], disallowed: ['apaar', 'marksheet'] },
-        { id: 'income_cert', name: 'Income Certificate (Tehsildar)', allowed: ['income', 'उत्पन्न', 'tahsildar', 'revenue'], disallowed: ['aadhaar'] },
-        { id: 'passbook', name: 'Bank Passbook (DBT Active)', allowed: ['passbook', 'bank', 'sbi'], disallowed: ['apaar'] }
-      ]
-    },
-    {
-      id: 'SCHEME_MAJHI_KANYA',
-      name: 'Majhi Kanya Bhagyashree Scheme',
-      portalName: 'Women & Child Welfare Dept (Maharashtra)',
-      grant: '₹50,000 Direct Security Deposit',
-      desc: 'Direct state social welfare, education security and financial support for girls & mothers.',
-      keywords: ['kanya', 'bhagyashree', 'ration', 'bpl', 'mulgi', 'child', 'balika', 'girl', 'कन्या', 'मुलगी', 'रेशन'],
-      requiredDocs: [
-        { id: 'aadhaar', name: 'Aadhaar Card', allowed: ['aadhaar', 'adhar'], disallowed: ['marksheet'] },
-        { id: 'ration_card', name: 'Ration Card (BPL/Antyodaya)', allowed: ['ration', 'food', 'रेशन'], disallowed: ['apaar'] },
-        { id: 'passbook', name: 'Bank Passbook (DBT)', allowed: ['passbook', 'bank'], disallowed: ['apaar'] }
-      ]
-    },
-    {
-      id: 'SCHEME_PRAGATI',
-      name: 'AICTE Pragati Scholarship for Girls',
-      portalName: 'National Scholarship Portal (NSP)',
-      grant: '₹50,000 / Year',
-      desc: 'Technical degree & diploma tuition assistance for female students.',
-      keywords: ['student', 'scholarship', 'college', 'shikshan', 'study', 'fee', 'bonafide', 'विद्यार्थिनी', 'शिक्षण', 'मुली'],
-      requiredDocs: [
-        { id: 'aadhaar', name: 'Aadhaar Card', allowed: ['aadhaar', 'adhar', 'uidai'], disallowed: ['marksheet', 'apaar'] },
-        { id: 'income_cert', name: 'Income Certificate', allowed: ['income', 'उत्पन्न', 'tehsildar'], disallowed: ['aadhaar'] },
-        { id: 'bonafide', name: 'College Admission Bonafide', allowed: ['bonafide', 'college', 'fee'], disallowed: ['apaar'] },
-        { id: 'passbook', name: 'Bank Passbook (DBT)', allowed: ['passbook', 'bank', 'sbi'], disallowed: ['apaar'] }
-      ]
-    },
-    {
-      id: 'SCHEME_MUDRA_WOMEN',
-      name: 'Pradhan Mantri Mudra Yojana (Tarun & Kishor)',
-      portalName: 'Udyamimitra Portal (Govt. of India)',
-      grant: 'Up to ₹10 Lakhs Collateral-free Credit',
-      desc: 'Subsidized loan assistance for women entrepreneurs & self-help groups (बचत गट व महिला व्यवसाय कर्ज).',
-      keywords: ['business', 'loan', 'mudra', 'udyam', 'entrepreneur', 'vyavasay', 'dukan', 'कर्ज', 'व्यवसाय', 'महिला उद्योजक'],
-      requiredDocs: [
-        { id: 'aadhaar', name: 'Aadhaar Card', allowed: ['aadhaar', 'adhar'], disallowed: ['marksheet'] },
-        { id: 'business_proof', name: 'Udyam Aadhaar / Business Proof', allowed: ['udyam', 'business', 'msme'], disallowed: ['marksheet'] },
-        { id: 'passbook', name: 'Bank Passbook (DBT)', allowed: ['passbook', 'bank'], disallowed: ['apaar'] }
-      ]
-    }
-  ];
+  const ALL_MAHARASHTRA_SCHEMES = [];
 
   const [schemes, setSchemes] = useState([]);
   const [selectedScheme, setSelectedScheme] = useState(null);
@@ -160,139 +105,60 @@ export default function App() {
     setAuthError('');
   };
 
-      const handleGoogleSchemeSearch = async (e) => {
+        const handleGoogleSchemeSearch = async (e) => {
     if (e) e.preventDefault();
     const rawQuery = (aiPromptInput || '').trim();
-    if (!rawQuery) return;
+    if (!rawQuery) {
+      setSchemes([]);
+      setSearchStatus('');
+      return;
+    }
 
     setIsSearching(true);
-    setSearchStatus('Connecting to Google Live Web Index & MahaDBT for: "' + rawQuery + '"...');
+    setSchemes([]); // आधीचा जुना डेटा पूर्ण पुसून टाका
+    setSearchStatus('Searching live Google & Government web index for: "' + rawQuery + '"...');
 
-    const googleQueryUrl = 'https://www.google.com/search?q=' + encodeURIComponent(rawQuery + ' maharashtra government scheme for women site:gov.in OR site:nic.in OR site:mahadbt.maharashtra.gov.in');
+    const googleQueryUrl = 'https://www.google.com/search?q=' + encodeURIComponent(rawQuery + ' maharashtra government scheme site:gov.in OR site:nic.in OR site:mahadbt.maharashtra.gov.in');
     setLiveGoogleUrl(googleQueryUrl);
 
-    // Try backend live scraper first
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 2500);
-
-      const res = await fetch('http://localhost:5000/api/live-search-schemes', {
+      // Relative URL वापरणे जेणेकरून मोबाईलवरूनही Codespaces बॅकएंडला कॉल जाईल
+      const res = await fetch('/api/live-search-schemes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: rawQuery }),
-        signal: controller.signal
+        body: JSON.stringify({ query: rawQuery })
       });
-      clearTimeout(timeoutId);
-
+      
       const data = await res.json();
+
       if (data && Array.isArray(data.schemes) && data.schemes.length > 0) {
         setSchemes(data.schemes);
-        setSearchStatus('✓ Google & MahaDBT वरून ' + data.schemes.length + ' लाईव्ह शासकीय योजना मिळाल्या!');
-        setIsSearching(false);
-        return;
+        setSearchStatus('✓ Google & Govt Portals वरून ' + data.schemes.length + ' लाईव्ह निकाल मिळाले!');
+      } else {
+        setSearchStatus('या क्वेरीसाठी थेट शासकीय निकाल सापडले नाहीत. खालील Google लिंकवर तपासा.');
       }
     } catch (err) {
-      console.log('Backend port 5000 offline, activating direct web intelligence...');
+      console.error('Search Error:', err);
+      // थेट बॅकएंडला डायरेक्ट पोर्ट 5000 वर ट्राय करा
+      try {
+        const directRes = await fetch('http://localhost:5000/api/live-search-schemes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: rawQuery })
+        });
+        const directData = await directRes.json();
+        if (directData?.schemes?.length > 0) {
+          setSchemes(directData.schemes);
+          setSearchStatus('✓ Live Web वरून ' + directData.schemes.length + ' निकाल मिळाले!');
+          setIsSearching(false);
+          return;
+        }
+      } catch (e) {}
+
+      setSearchStatus('इंटरनेट सर्च अयशस्वी. कृपया इंटरनेट कनेक्शन आणि बॅकएंड तपासा.');
+    } finally {
+      setIsSearching(false);
     }
-
-    // Direct Web Intelligence Fallback (Matches real-time Google search results)
-    const qLower = rawQuery.toLowerCase();
-    let dynamicResults = [];
-
-    if (qLower.includes('scholarship') || qLower.includes('student') || qLower.includes('college')) {
-      dynamicResults = [
-        {
-          id: 'LIVE_SCHEME_1',
-          name: 'Rajarshi Chhatrapati Shahu Maharaj Merit Scholarship',
-          portalName: 'MahaDBT - Maharashtra Government (Live Web)',
-          grant: '100% Tuition & Exam Fee Waiver + Monthly Allowance',
-          desc: 'Direct state education fee reimbursement for students studying in 11th, 12th, degree, and diploma colleges.',
-          sourceUrl: 'https://mahadbt.maharashtra.gov.in',
-          requiredDocs: [
-            { id: 'aadhaar', name: 'Aadhaar Card', allowed: ['aadhaar', 'adhar'], disallowed: ['marksheet'] },
-            { id: 'income_cert', name: 'Income Certificate', allowed: ['income', 'tehsildar'], disallowed: ['aadhaar'] },
-            { id: 'bonafide', name: 'College Admission Bonafide', allowed: ['bonafide', 'college', 'fee'], disallowed: ['apaar'] },
-            { id: 'passbook', name: 'Bank Passbook (DBT)', allowed: ['passbook', 'bank'], disallowed: ['apaar'] }
-          ]
-        },
-        {
-          id: 'LIVE_SCHEME_2',
-          name: 'Girl\'s Free Higher Education Scheme (DHE Pune)',
-          portalName: 'Directorate of Higher Education, Maharashtra',
-          grant: 'Complete Tuition Fee Reimbursement for Girls',
-          desc: 'Financial support and free tuition for all female students admitted to government and aided colleges across Maharashtra.',
-          sourceUrl: 'https://dhepune.gov.in',
-          requiredDocs: [
-            { id: 'aadhaar', name: 'Aadhaar Card', allowed: ['aadhaar', 'adhar'], disallowed: ['marksheet'] },
-            { id: 'income_cert', name: 'Income Certificate (Below 8 Lakh)', allowed: ['income', 'tehsildar'], disallowed: ['aadhaar'] },
-            { id: 'passbook', name: 'Bank Passbook (DBT)', allowed: ['passbook', 'bank'], disallowed: ['apaar'] }
-          ]
-        },
-        {
-          id: 'LIVE_SCHEME_3',
-          name: 'Post-Matric Scholarship to VJNT / OBC / SBC Students',
-          portalName: 'Social Justice Dept - Aaple Sarkar DBT',
-          grant: 'Maintenance Allowance + Complete Tuition Fees',
-          desc: 'Scholarship scheme for students pursuing professional and non-professional courses in Maharashtra.',
-          sourceUrl: 'https://mahadbt.maharashtra.gov.in',
-          requiredDocs: [
-            { id: 'aadhaar', name: 'Aadhaar Card', allowed: ['aadhaar', 'adhar'], disallowed: ['marksheet'] },
-            { id: 'caste_cert', name: 'Caste & Validity Certificate', allowed: ['caste', 'validity'], disallowed: ['apaar'] },
-            { id: 'passbook', name: 'Bank Passbook (DBT)', allowed: ['passbook', 'bank'], disallowed: ['apaar'] }
-          ]
-        },
-        {
-          id: 'LIVE_SCHEME_4',
-          name: 'State Government Open Merit Scholarship for Girls',
-          portalName: 'Directorate of Technical Education (DTE)',
-          grant: 'Direct Annual DBT Grant to Bank Account',
-          desc: 'Merit-based financial aid for girl students securing top ranks in Maharashtra state board examinations.',
-          sourceUrl: 'https://dtemaharashtra.gov.in',
-          requiredDocs: [
-            { id: 'aadhaar', name: 'Aadhaar Card', allowed: ['aadhaar', 'adhar'], disallowed: ['marksheet'] },
-            { id: 'marksheet', name: 'SSC / HSC Marksheet', allowed: ['marksheet', 'result'], disallowed: ['passbook'] },
-            { id: 'passbook', name: 'Bank Passbook (DBT)', allowed: ['passbook', 'bank'], disallowed: ['apaar'] }
-          ]
-        }
-      ];
-    } else if (qLower.includes('viddava') || qLower.includes('vidhwa') || qLower.includes('widow') || qLower.includes('pension')) {
-      dynamicResults = [
-        {
-          id: 'LIVE_SCHEME_WIDOW_1',
-          name: 'Indira Gandhi / Sanjay Gandhi Niradhar Widow Pension Scheme',
-          portalName: 'Social Justice & Assistance Dept (Maharashtra)',
-          grant: '₹1,500 / Month Direct DBT Bank Transfer',
-          desc: 'Monthly financial assistance and social pension security for widow and destitute women across Maharashtra.',
-          sourceUrl: 'https://sjsa.maharashtra.gov.in',
-          requiredDocs: [
-            { id: 'aadhaar', name: 'Aadhaar Card', allowed: ['aadhaar', 'adhar'], disallowed: ['marksheet'] },
-            { id: 'death_cert', name: 'Husband Death Certificate', allowed: ['death', 'मृत्यू', 'mrutyu'], disallowed: ['marksheet'] },
-            { id: 'income_cert', name: 'Income Certificate (Tehsildar)', allowed: ['income', 'उत्पन्न', 'tehsildar'], disallowed: ['aadhaar'] },
-            { id: 'passbook', name: 'Bank Passbook (DBT)', allowed: ['passbook', 'bank'], disallowed: ['apaar'] }
-          ]
-        }
-      ];
-    } else {
-      dynamicResults = [
-        {
-          id: 'LIVE_GEN_1',
-          name: 'Mukhyamantri Majhi Ladki Bahin Yojana',
-          portalName: 'Women & Child Development Dept (Maharashtra)',
-          grant: '₹1,500 / Month Direct DBT Financial Security',
-          desc: 'Direct state social and financial empowerment scheme for all eligible women aged 21-65 years in Maharashtra.',
-          sourceUrl: 'https://ladakibahin.maharashtra.gov.in',
-          requiredDocs: [
-            { id: 'aadhaar', name: 'Aadhaar Card', allowed: ['aadhaar', 'adhar'], disallowed: ['marksheet'] },
-            { id: 'ration_card', name: 'Ration Card (Orange / Yellow)', allowed: ['ration', 'food'], disallowed: ['marksheet'] },
-            { id: 'passbook', name: 'Bank Passbook (Aadhaar Seeded)', allowed: ['passbook', 'bank'], disallowed: ['apaar'] }
-          ]
-        }
-      ];
-    }
-
-    setSchemes(dynamicResults);
-    setSearchStatus('✓ Google & MahaDBT वरून ' + dynamicResults.length + ' लाईव्ह शासकीय योजना मिळाल्या!');
-    setIsSearching(false);
   };
   const handleUploadFile = (docObj, file) => {
     if (!file) return;
