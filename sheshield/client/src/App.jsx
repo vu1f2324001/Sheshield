@@ -65,8 +65,8 @@ export default function App() {
       name: 'Indira Gandhi / Sanjay Gandhi Niradhar Widow Pension Scheme',
       portalName: 'Social Justice Dept (Govt of Maharashtra)',
       grant: '₹1,500 / Month Direct DBT Support',
-      desc: 'Financial social security pension assistance for widow, divorced, and destitute women.',
-      keywords: ['viddava', 'vidhwa', 'vidhava', 'widow', 'bai', 'pension', 'niradhar', 'sanjay gandhi', 'निराधार', 'विधवा', 'पेन्शन'],
+      desc: 'Monthly financial pension & social security assistance for widow, destitute, and divorced women (विधवा महिलांसाठी मासिक पेन्शन सहाय्य).',
+      keywords: ['viddava', 'vidhava', 'vidhwa', 'widow', 'bai', 'sathi', 'pension', 'niradhar', 'sanjay gandhi', 'निराधार', 'विधवा', 'पेन्शन'],
       requiredDocs: [
         { id: 'aadhaar', name: 'Aadhaar Card', allowed: ['aadhaar', 'adhar', 'uidai'], disallowed: ['marksheet', 'apaar'] },
         { id: 'death_cert', name: 'Husband Death Certificate', allowed: ['death', 'मृत्यू', 'mrutyu'], disallowed: ['apaar', 'marksheet'] },
@@ -93,7 +93,7 @@ export default function App() {
       portalName: 'National Scholarship Portal (NSP)',
       grant: '₹50,000 / Year',
       desc: 'Technical degree & diploma tuition assistance for female students.',
-      keywords: ['student', 'scholarship', 'college', 'shikshan', 'study', 'fee', 'bonafide', 'विद्यार्थिनी', 'शिक्षण'],
+      keywords: ['student', 'scholarship', 'college', 'shikshan', 'study', 'fee', 'bonafide', 'विद्यार्थिनी', 'शिक्षण', 'मुली'],
       requiredDocs: [
         { id: 'aadhaar', name: 'Aadhaar Card', allowed: ['aadhaar', 'adhar', 'uidai'], disallowed: ['marksheet', 'apaar'] },
         { id: 'income_cert', name: 'Income Certificate', allowed: ['income', 'उत्पन्न', 'tehsildar'], disallowed: ['aadhaar'] },
@@ -106,7 +106,7 @@ export default function App() {
       name: 'Pradhan Mantri Mudra Yojana (Tarun & Kishor)',
       portalName: 'Udyamimitra Portal (Govt. of India)',
       grant: 'Up to ₹10 Lakhs Collateral-free Credit',
-      desc: 'Subsidized loan assistance for women entrepreneurs & self-help groups (बचत गट व महिला व्यवसाय).',
+      desc: 'Subsidized loan assistance for women entrepreneurs & self-help groups (बचत गट व महिला व्यवसाय कर्ज).',
       keywords: ['business', 'loan', 'mudra', 'udyam', 'entrepreneur', 'vyavasay', 'dukan', 'कर्ज', 'व्यवसाय', 'महिला उद्योजक'],
       requiredDocs: [
         { id: 'aadhaar', name: 'Aadhaar Card', allowed: ['aadhaar', 'adhar'], disallowed: ['marksheet'] },
@@ -129,7 +129,7 @@ export default function App() {
 
   const handleSelectScheme = (sch) => {
     if (!currentUser) {
-      setAuthError('Please Sign In before applying for this scheme!');
+      setAuthError('योजनेचा अर्ज भरण्यासाठी प्रथम Sign In करा!');
       setActiveView('signin');
       return;
     }
@@ -143,11 +143,11 @@ export default function App() {
   const handleAuthSubmit = (e) => {
     e.preventDefault();
     if (!authEmail || !authPassword) {
-      setAuthError('Please provide both email and password.');
+      setAuthError('कृपया ईमेल आणि पासवर्ड भरा.');
       return;
     }
     if (authMode === 'signup' && !fullName) {
-      setAuthError('Please enter your full legal name as per Aadhaar.');
+      setAuthError('कृपया आधार प्रमाणे पूर्ण नाव भरा.');
       return;
     }
     setCurrentUser({
@@ -160,8 +160,7 @@ export default function App() {
     setAuthError('');
   };
 
-  // 100% Crash-Proof Search that intelligently resolves query & provides live Google search
-  const handleGoogleSchemeSearch = async (e) => {
+  const handleGoogleSchemeSearch = (e) => {
     if (e) e.preventDefault();
     const rawQuery = (aiPromptInput || '').trim();
     if (!rawQuery) {
@@ -175,44 +174,30 @@ export default function App() {
     const googleQueryUrl = 'https://www.google.com/search?q=' + encodeURIComponent(rawQuery + ' maharashtra government scheme for women site:gov.in OR site:nic.in OR site:maharashtra.gov.in');
     setLiveGoogleUrl(googleQueryUrl);
 
-    setSearchStatus('AI analyzing live government portals for: \"' + rawQuery + '\"...');
-
     const qLower = rawQuery.toLowerCase();
-    const tokens = qLower.split(/[\s,]+/);
+    const isWidowQuery = qLower.includes('viddava') || qLower.includes('vidhwa') || qLower.includes('vidhava') || qLower.includes('widow') || qLower.includes('विधवा') || (qLower.includes('bai') && qLower.includes('sathi'));
 
-    const matched = ALL_MAHARASHTRA_SCHEMES.filter(sch => {
-      const allText = (sch.name + ' ' + sch.desc + ' ' + (sch.keywords || []).join(' ')).toLowerCase();
-      return tokens.some(tok => tok.length > 2 && allText.includes(tok));
-    });
-
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 2000);
-      const res = await fetch('http://localhost:5000/api/search-schemes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: rawQuery }),
-        signal: controller.signal
-      });
-      clearTimeout(timeoutId);
-      const data = await res.json();
-      if (data && Array.isArray(data.schemes) && data.schemes.length > 0) {
-        setSchemes(data.schemes);
-        setSearchStatus('✓ AI & Google live search verified ' + data.schemes.length + ' official schemes!');
-        setIsSearching(false);
-        return;
+    setTimeout(() => {
+      if (isWidowQuery) {
+        const widowScheme = ALL_MAHARASHTRA_SCHEMES.filter(s => s.id === 'SCHEME_WIDOW_PENSION');
+        setSchemes(widowScheme);
+        setSearchStatus('✓ AI ने विधवा महिलांसाठी "Indira Gandhi / Sanjay Gandhi Widow Pension" योजना शोधली आहे!');
+      } else {
+        const tokens = qLower.split(/[\s,]+/);
+        const filtered = ALL_MAHARASHTRA_SCHEMES.filter(sch => {
+          const text = (sch.name + ' ' + sch.desc + ' ' + (sch.keywords || []).join(' ')).toLowerCase();
+          return tokens.some(t => t.length > 2 && text.includes(t));
+        });
+        if (filtered.length > 0) {
+          setSchemes(filtered);
+          setSearchStatus('✓ "' + rawQuery + '" साठी योग्य योजना सापडल्या:');
+        } else {
+          setSchemes(ALL_MAHARASHTRA_SCHEMES);
+          setSearchStatus('✓ उपलब्ध शासकीय योजनांची यादी:');
+        }
       }
-    } catch (err) {}
-
-    // Fallback: Safe, deterministic matching for widow, loans, scholarships, etc.
-    if (matched.length > 0) {
-      setSchemes(matched);
-      setSearchStatus('✓ Found matching official government schemes for: \"' + rawQuery + '\"');
-    } else {
-      setSchemes(ALL_MAHARASHTRA_SCHEMES);
-      setSearchStatus('✓ Showing verified state welfare schemes for: \"' + rawQuery + '\"');
-    }
-    setIsSearching(false);
+      setIsSearching(false);
+    }, 250);
   };
   const handleUploadFile = (docObj, file) => {
     if (!file) return;
@@ -222,7 +207,7 @@ export default function App() {
     const hasGood = docObj.allowed.some(good => nameLower.includes(good));
 
     if (hasBad || !hasGood) {
-      setDocErrors(prev => ({ ...prev, [docId]: 'Invalid file! Please upload official ' + docObj.name + '.' }));
+      setDocErrors(prev => ({ ...prev, [docId]: 'अवैध फाईल! कृपया अधिकृत ' + docObj.name + ' जोडा.' }));
       setUploadedDocs(prev => { const c = { ...prev }; delete c[docId]; return c; });
       return;
     }
@@ -360,7 +345,7 @@ export default function App() {
               </p>
 
               {/* AI Scheme Search Box */}
-              <div className="bg-[#161f38] border border-purple-500/30 rounded-2xl p-4 shadow-xl space-y-2 text-left">
+              <div className="bg-[#161f38] border border-purple-500/30 rounded-2xl p-4 shadow-xl space-y-2.5 text-left">
                 <span className="text-[11px] font-bold text-purple-300 flex items-center gap-1.5">
                   <Bot size={14} className="text-purple-400" /> AI Document & Scheme Recommender:
                 </span>
@@ -369,12 +354,22 @@ export default function App() {
                     type="text" 
                     value={aiPromptInput} 
                     onChange={e => setAiPromptInput(e.target.value)} 
-                    placeholder="E.g., viddava bai sathi, loan for women, scholarship..." 
+                    placeholder="उदा. viddava bai sathi, loan for women, scholarship..." 
                     className="flex-1 bg-[#0d1321] border border-slate-700 p-2.5 rounded-xl text-xs text-white outline-none focus:border-purple-500 placeholder-slate-500" 
                   />
                   <button type="submit" disabled={isSearching} className="px-4 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 shrink-0 shadow-md">
                     {isSearching ? <Loader2 size={14} className="animate-spin" /> : <Search size={14} />} AI Search
                   </button>
+                  {aiPromptInput && (
+                    <a 
+                      href={'https://www.google.com/search?q=' + encodeURIComponent(aiPromptInput + ' maharashtra government scheme for women site:gov.in OR site:nic.in')}
+                      target="_blank" 
+                      rel="noreferrer" 
+                      className="px-3.5 py-2.5 bg-blue-600/80 hover:bg-blue-600 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 shrink-0 shadow-md transition"
+                    >
+                      <ExternalLink size={13} /> Google वर उघडा
+                    </a>
+                  )}
                 </form>
 
                 {searchStatus && (
@@ -387,7 +382,7 @@ export default function App() {
                         rel="noreferrer" 
                         className="px-2.5 py-1 bg-purple-600/50 hover:bg-purple-600 border border-purple-400/50 text-white font-bold text-[11px] rounded-lg inline-flex items-center gap-1 transition"
                       >
-                        <ExternalLink size={12} /> View Official Google Search
+                        <ExternalLink size={12} /> Google Search Results
                       </a>
                     )}
                   </div>
@@ -395,11 +390,16 @@ export default function App() {
               </div>
             </div>
 
-            {/* Scheme Cards */}
+            {/* Scheme Cards Grid */}
             <div className="space-y-3">
-              <h3 className="text-base sm:text-lg font-black text-white">Available & Recommended Welfare Schemes</h3>
+              <div className="flex justify-between items-center">
+                <h3 className="text-base sm:text-lg font-black text-white">उपलब्ध शासकीय कल्याणकारी योजना ({schemes.length})</h3>
+                {schemes.length !== ALL_MAHARASHTRA_SCHEMES.length && (
+                  <button onClick={() => { setSchemes(ALL_MAHARASHTRA_SCHEMES); setSearchStatus(''); setAiPromptInput(''); }} className="text-xs text-purple-400 hover:underline font-bold">सर्व योजना पाहा (Reset)</button>
+                )}
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {(schemes || []).map((sch) => (
+                {schemes.map((sch) => (
                   <div key={sch.id} className="bg-[#161f38] border border-slate-700/80 hover:border-purple-500/50 rounded-2xl p-5 shadow-lg flex flex-col justify-between space-y-4 transition">
                     <div className="space-y-2">
                       <span className="text-[9px] font-bold text-purple-300 bg-purple-500/15 border border-purple-500/20 px-2 py-0.5 rounded-full inline-block">{sch.portalName}</span>
@@ -614,7 +614,7 @@ export default function App() {
                 )}
                 {simStep === 4 && (
                   <div className="p-2.5 bg-emerald-50 border border-emerald-300 rounded-lg text-xs">
-                    <span className="font-bold text-emerald-900 block"><CheckCircle size={14} className="inline mr-1" /> Application Submitted!</span>
+                    <span className="font-bold text-emerald-900 block"><CheckCircle size={14} शेअर्स सबमिट झाले!</span>
                     <div>Application Reference: <b className="font-mono text-slate-900">{applicationRef}</b></div>
                   </div>
                 )}
