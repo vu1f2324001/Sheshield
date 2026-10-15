@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { 
   Shield, CheckCircle, ArrowRight, Sparkles, UploadCloud, 
   Bot, KeyRound, Check, XCircle, LogOut, User, ArrowLeft, ScanText, 
-  Search, Loader2, LogIn, Mail, Lock, Globe
+  Search, Loader2, LogIn, Globe
 } from 'lucide-react';
 
 export default function App() {
@@ -19,70 +19,50 @@ export default function App() {
   const [currentUser, setCurrentUser] = useState(null);
   const [selectedLang, setSelectedLang] = useState(getInitialLang);
 
+  const [authMode, setAuthMode] = useState('signin'); // 'signin' | 'signup'
   const [authEmail, setAuthEmail] = useState('');
   const [authPassword, setAuthPassword] = useState('');
   const [fullName, setFullName] = useState('');
+  const [mobileNumber, setMobileNumber] = useState('');
   const [authError, setAuthError] = useState('');
 
   const [aiPromptInput, setAiPromptInput] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [searchStatus, setSearchStatus] = useState('');
 
-  // Clean language switcher that supports instantaneous reset back to pure English
     const changeLanguage = (langCode) => {
     setSelectedLang(langCode);
 
-    // 1. सर्व कुकीज आणि Google Translate कॅशे पूर्णपणे पुसणे
-    const eraseCookie = (name) => {
-      const host = window.location.hostname;
-      const parts = host.split('.');
-      const p1 = host;
-      const p2 = '.' + host;
-      const p3 = parts.length > 2 ? '.' + parts.slice(-2).join('.') : '';
-      [p1, p2, p3, ''].forEach(d => {
-        ['/', '/client', window.location.pathname].forEach(p => {
-          document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=' + p + (d ? '; domain=' + d : '') + ';';
-        });
-      });
-    };
+    const domain = window.location.hostname;
+    const isLocal = domain === 'localhost' || domain === '127.0.0.1';
 
-    eraseCookie('googtrans');
-    try {
-      sessionStorage.removeItem('googtrans');
-      localStorage.removeItem('googtrans');
-    } catch(e) {}
-
-    // 2. जर English निवडले असेल: थेट अधिकृत Restore/Reset ट्रिगर करा
     if (langCode === 'en') {
-      // Google Translate चा मूळ कॉम्बो बॉक्स 0 वर आणणे
+      // 1. Google ला English-to-English लॉक करा
+      document.cookie = 'googtrans=/en/en; path=/;' + (isLocal ? '' : ' domain=' + domain + ';');
+      document.cookie = 'googtrans=/en/en; path=/;';
+      
+      // 2. Combo मधील व्हॅल्यू क्लिअर करा
       const combo = document.querySelector('.goog-te-combo');
       if (combo) {
-        combo.selectedIndex = 0;
-        combo.value = '';
+        combo.value = 'en';
         combo.dispatchEvent(new Event('change'));
       }
 
-      // Banner मधील Restore बटण ट्रिगर करणे
-      try {
-        const iframe = document.querySelector('iframe.goog-te-banner-frame');
-        if (iframe && iframe.contentDocument) {
-          const closeBtn = iframe.contentDocument.querySelector('.goog-close-link, #goog-gt-tt button, a[id=":1.restore"]');
-          if (closeBtn) closeBtn.click();
-        }
-      } catch (e) {}
+      // 3. Google चे ट्रान्सलेशन बॅनर आणि हायलाईट्स हटवा
+      document.querySelectorAll('.goog-text-highlight').forEach(el => {
+        el.classList.remove('goog-text-highlight');
+      });
 
-      // URL पॅरामीटर क्लिअर करून स्वच्छ रीलोड करणे
+      // 4. URL पॅरामीटर्स आणि हॅश क्लिअर करून रीलोड करा
       setTimeout(() => {
         window.location.href = window.location.origin + window.location.pathname;
       }, 100);
       return;
     }
 
-    // 3. इतर भाषेसाठी कुकी सेट करणे आणि ट्रिगर करणे
-    const host = window.location.hostname;
+    // इतर सर्व भारतीय भाषांसाठी:
+    document.cookie = 'googtrans=/en/' + langCode + '; path=/;' + (isLocal ? '' : ' domain=' + domain + ';');
     document.cookie = 'googtrans=/en/' + langCode + '; path=/;';
-    document.cookie = 'googtrans=/en/' + langCode + '; path=/; domain=' + host + ';';
-    document.cookie = 'googtrans=/en/' + langCode + '; path=/; domain=.' + host + ';';
 
     const combo = document.querySelector('.goog-te-combo');
     if (combo) {
@@ -143,7 +123,6 @@ export default function App() {
   const [portalOtp, setPortalOtp] = useState('');
   const [applicationRef, setApplicationRef] = useState('');
 
-  // Primary rule: Require Sign In before launching the agent
   const handleSelectScheme = (sch) => {
     if (!currentUser) {
       setAuthError('Please Sign In before applying for this scheme!');
@@ -157,42 +136,70 @@ export default function App() {
     setActiveWorkflow(null);
   };
 
-  const handleSignInSubmit = (e) => {
+  const handleAuthSubmit = (e) => {
     e.preventDefault();
     if (!authEmail || !authPassword) {
       setAuthError('Please provide both email and password.');
       return;
     }
+    if (authMode === 'signup' && !fullName) {
+      setAuthError('Please enter your full legal name as per Aadhaar.');
+      return;
+    }
     setCurrentUser({
       fullName: fullName || authEmail.split('@')[0] || 'Registered Woman Beneficiary',
       email: authEmail,
+      mobile: mobileNumber || '9876543210',
       income: 150000
     });
     setActiveView('home');
     setAuthError('');
   };
 
-  const handleGoogleSchemeSearch = async (e) => {
+    const handleGoogleSchemeSearch = async (e) => {
     if (e) e.preventDefault();
-    if (!aiPromptInput.trim()) return;
+    const query = aiPromptInput.trim();
+      setSchemes(ALL_MAHARASHTRA_SCHEMES);
+      setSearchStatus('');
+      return;
+    }
+
     setIsSearching(true);
-    setSearchStatus('🤖 AI is searching live official government portals via Google...');
+    setSearchStatus('Connecting to Google live search for: ' + query + '...');
+
+    const googleDirectUrl = 'https://www.google.com/search?q=' + encodeURIComponent(query + ' maharashtra government scheme for women site:gov.in OR site:nic.in');
+
     try {
       const res = await fetch('http://localhost:5000/api/search-schemes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: aiPromptInput })
+        body: JSON.stringify({ query: query })
       });
       const data = await res.json();
       if (data?.schemes?.length > 0) {
         setSchemes(data.schemes);
-        setSearchStatus(`✓ AI found ${data.schemes.length} verified government schemes matching your query!`);
+        setSearchStatus('✓ AI & Google live results ready! [Official Google Search link available below]');
+        setIsSearching(false);
+        return;
       }
-    } catch (err) {
-      setSearchStatus('✓ Verified welfare schemes available for your credentials:');
-    } finally {
-      setIsSearching(false);
+    } catch (err) {}
+
+    // Fallback keyword matching
+    const qLower = query.toLowerCase();
+    const matched = ALL_MAHARASHTRA_SCHEMES.filter(sch => 
+      sch.keywords?.some(k => qLower.includes(k) || k.includes(qLower)) ||
+      sch.name.toLowerCase().includes(qLower) ||
+      sch.desc.toLowerCase().includes(qLower)
+    );
+
+    if (matched.length > 0) {
+      setSchemes(matched);
+      setSearchStatus('✓ Found matching government schemes for "' + query + '"');
+    } else {
+      setSchemes(ALL_MAHARASHTRA_SCHEMES);
+      setSearchStatus('✓ Showing standard welfare programs');
     }
+    setIsSearching(false);
   };
   const handleUploadFile = (docObj, file) => {
     if (!file) return;
@@ -262,7 +269,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#0d1321] text-slate-100 font-sans flex flex-col justify-between">
-      {/* Top Navbar */}
+      {/* Navbar */}
       <header className="bg-[#111827]/90 backdrop-blur-md border-b border-slate-800 sticky top-0 z-50 px-4 py-3.5 shadow-sm">
         <div className="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-3">
           <div className="flex items-center gap-2.5 cursor-pointer select-none" onClick={() => { setActiveView('home'); setSelectedScheme(null); setActiveWorkflow(null); }}>
@@ -276,7 +283,6 @@ export default function App() {
           </div>
 
           <div className="flex items-center gap-2.5">
-            {/* All-Indian Languages Translator Dropdown */}
             <div className="notranslate flex items-center gap-1.5 bg-[#1e293b] border border-purple-500/50 hover:border-purple-400 px-3 py-1.5 rounded-xl text-xs shadow-md transition">
               <Globe size={14} className="text-purple-400 shrink-0" />
               <select 
@@ -325,10 +331,9 @@ export default function App() {
           </div>
         </div>
       </header>
-      {/* Main Workspace */}
+
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-8">
-        
-        {/* VIEW 1: HOME PAGE (English) */}
+        {/* VIEW 1: HOME PAGE */}
         {activeView === 'home' && !selectedScheme && (
           <div className="space-y-8 py-2">
             <div className="text-center max-w-3xl mx-auto space-y-4">
@@ -347,7 +352,6 @@ export default function App() {
                 Students, entrepreneurs, homemakers or senior women—discover matching welfare schemes based on your documents and submit directly.
               </p>
 
-              {/* AI Search Prompt Box */}
               <div className="bg-[#161f38] border border-purple-500/30 rounded-2xl p-4 shadow-xl space-y-2 text-left">
                 <span className="text-[11px] font-bold text-purple-300 flex items-center gap-1.5">
                   <Bot size={14} className="text-purple-400" /> AI Document & Scheme Recommender:
@@ -368,7 +372,6 @@ export default function App() {
               </div>
             </div>
 
-            {/* Scheme Cards Grid */}
             <div className="space-y-3">
               <h3 className="text-base sm:text-lg font-black text-white">Available & Recommended Welfare Schemes</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -391,40 +394,104 @@ export default function App() {
           </div>
         )}
 
-        {/* VIEW 2: SIGN IN VIEW */}
+        {/* VIEW 2: SIGN IN / SIGN UP DUAL MODAL */}
         {activeView === 'signin' && !currentUser && (
-          <div className="max-w-md mx-auto bg-[#161f38] border border-slate-700 p-6 sm:p-8 rounded-3xl shadow-2xl space-y-4 my-4">
+          <div className="max-w-md mx-auto bg-[#161f38] border border-slate-700 p-6 sm:p-8 rounded-3xl shadow-2xl space-y-5 my-4">
+            <div className="flex bg-[#0d1321] p-1 rounded-2xl border border-slate-800">
+              <button 
+                type="button"
+                onClick={() => { setAuthMode('signin'); setAuthError(''); }}
+                className={'flex-1 py-2 font-bold text-xs rounded-xl transition flex items-center justify-center gap-1.5 ' + (authMode === 'signin' ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow' : 'text-slate-400 hover:text-white')}
+              >
+                <LogIn size={13} /> Sign In
+              </button>
+              <button 
+                type="button"
+                onClick={() => { setAuthMode('signup'); setAuthError(''); }}
+                className={'flex-1 py-2 font-bold text-xs rounded-xl transition flex items-center justify-center gap-1.5 ' + (authMode === 'signup' ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow' : 'text-slate-400 hover:text-white')}
+              >
+                <User size={13} /> Sign Up
+              </button>
+            </div>
+
             <div className="text-center space-y-1">
-              <div className="w-12 h-12 rounded-2xl bg-purple-500/15 text-purple-400 flex items-center justify-center mx-auto mb-2">
-                <LogIn size={24} />
-              </div>
-              <h2 className="text-xl font-bold text-white">Sign In to Sheshield</h2>
-              <p className="text-xs text-slate-400">Please sign in to your beneficiary account before applying:</p>
+              <h2 className="text-xl font-bold text-white">
+                {authMode === 'signin' ? 'Sign In to Sheshield' : 'Create Beneficiary Account'}
+              </h2>
+              <p className="text-xs text-slate-400">
+                {authMode === 'signin' 
+                  ? 'Access scheme applications and autonomous submission' 
+                  : 'Register as a woman beneficiary for state welfare schemes'}
+              </p>
             </div>
 
             {authError && <div className="p-2.5 bg-rose-950/80 border border-rose-500/50 rounded-xl text-xs text-rose-200">{authError}</div>}
 
-            <form onSubmit={handleSignInSubmit} className="space-y-3.5 text-xs">
-              <div>
-                <label className="text-slate-300 block mb-1 font-semibold">Full Legal Name (as per Aadhaar):</label>
-                <input type="text" placeholder="E.g., Anita Kadam" value={fullName} onChange={e => setFullName(e.target.value)} className="w-full bg-[#0d1321] border border-slate-700 p-2.5 rounded-xl text-white outline-none focus:border-purple-500" />
-              </div>
+            <form onSubmit={handleAuthSubmit} className="space-y-3.5 text-xs">
+              {authMode === 'signup' && (
+                <>
+                  <div>
+                    <label className="text-slate-300 block mb-1 font-semibold">Full Legal Name (as per Aadhaar):</label>
+                    <input 
+                      type="text" 
+                      required 
+                      placeholder="E.g., Anita Ramesh Kadam" 
+                      value={fullName} 
+                      onChange={e => setFullName(e.target.value)} 
+                      className="w-full bg-[#0d1321] border border-slate-700 p-2.5 rounded-xl text-white outline-none focus:border-purple-500" 
+                    />
+                  </div>
+                  <div>
+                    <label className="text-slate-300 block mb-1 font-semibold">Mobile Number:</label>
+                    <input 
+                      type="tel" 
+                      placeholder="E.g., 9876543210" 
+                      value={mobileNumber} 
+                      onChange={e => setMobileNumber(e.target.value)} 
+                      className="w-full bg-[#0d1321] border border-slate-700 p-2.5 rounded-xl text-white outline-none focus:border-purple-500" 
+                    />
+                  </div>
+                </>
+              )}
+
               <div>
                 <label className="text-slate-300 block mb-1 font-semibold">Email ID:</label>
-                <input type="email" required placeholder="user@gmail.com" value={authEmail} onChange={e => setAuthEmail(e.target.value)} className="w-full bg-[#0d1321] border border-slate-700 p-2.5 rounded-xl text-white outline-none focus:border-purple-500" />
+                <input 
+                  type="email" 
+                  required 
+                  placeholder="user@example.com" 
+                  value={authEmail} 
+                  onChange={e => setAuthEmail(e.target.value)} 
+                  className="w-full bg-[#0d1321] border border-slate-700 p-2.5 rounded-xl text-white outline-none focus:border-purple-500" 
+                />
               </div>
+
               <div>
                 <label className="text-slate-300 block mb-1 font-semibold">Password:</label>
-                <input type="password" required placeholder="••••••••" value={authPassword} onChange={e => setAuthPassword(e.target.value)} className="w-full bg-[#0d1321] border border-slate-700 p-2.5 rounded-xl text-white outline-none focus:border-purple-500" />
+                <input 
+                  type="password" 
+                  required 
+                  placeholder="••••••••" 
+                  value={authPassword} 
+                  onChange={e => setAuthPassword(e.target.value)} 
+                  className="w-full bg-[#0d1321] border border-slate-700 p-2.5 rounded-xl text-white outline-none focus:border-purple-500" 
+                />
               </div>
 
-              <button type="submit" className="w-full py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold rounded-xl shadow-lg transition">
-                Sign In & Continue →
+              <button type="submit" className="w-full py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 text-white font-bold rounded-xl shadow-lg transition">
+                {authMode === 'signin' ? 'Sign In & Continue →' : 'Create Account & Continue →'}
               </button>
             </form>
+
+            <div className="text-center text-xs text-slate-400">
+              {authMode === 'signin' ? (
+                <span>Don't have an account? <button type="button" onClick={() => { setAuthMode('signup'); setAuthError(''); }} className="text-purple-400 font-bold hover:underline">Sign Up here</button></span>
+              ) : (
+                <span>Already have an account? <button type="button" onClick={() => { setAuthMode('signin'); setAuthError(''); }} className="text-purple-400 font-bold hover:underline">Sign In here</button></span>
+              )}
+            </div>
           </div>
         )}
-
         {/* VIEW 3: STRICT DOCUMENT UPLOAD SANDBOX */}
         {selectedScheme && !activeWorkflow && currentUser && (
           <div className="bg-[#161f38] border border-slate-700 rounded-3xl p-5 sm:p-7 shadow-2xl space-y-5">
