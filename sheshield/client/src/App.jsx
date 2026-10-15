@@ -116,7 +116,7 @@ export default function App() {
     }
   ];
 
-  const [schemes, setSchemes] = useState(ALL_MAHARASHTRA_SCHEMES);
+  const [schemes, setSchemes] = useState([]);
   const [selectedScheme, setSelectedScheme] = useState(null);
   const [uploadedDocs, setUploadedDocs] = useState({});
   const [extractedData, setExtractedData] = useState({});
