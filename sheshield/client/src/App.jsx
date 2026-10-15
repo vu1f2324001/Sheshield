@@ -267,7 +267,7 @@ export default function App() {
     setAuthError('');
   };
 
-                            const handleGoogleSchemeSearch = async (e) => {
+                              const handleGoogleSchemeSearch = async (e) => {
     if (e) e.preventDefault();
     const rawQuery = (aiPromptInput || '').trim();
     if (!rawQuery) {
@@ -278,106 +278,38 @@ export default function App() {
 
     setIsSearching(true);
     setSchemes([]);
-    setSearchStatus('Web Agent is researching live government web index for: "' + rawQuery + '"...');
+    setSearchStatus('Connecting directly to Google Custom Search Engine for: "' + rawQuery + '"...');
 
-    const googleQueryUrl = 'https://www.google.com/search?q=' + encodeURIComponent(rawQuery + ' maharashtra government scheme for women site:gov.in OR site:nic.in OR site:mahadbt.maharashtra.gov.in');
+    const googleQueryUrl = 'https://www.google.com/search?q=' + encodeURIComponent(rawQuery + ' site:mahadbt.maharashtra.gov.in OR site:myscheme.gov.in');
     setLiveGoogleUrl(googleQueryUrl);
 
     try {
-      const q = rawQuery.toLowerCase();
-      let researchResults = [];
+      const apiKey = 'AIzaSyDj45KSn7NneMul-Qwm6rTtYwhnywsN94Y';
+      const cx = 'b581b982fcfd440a7';
+      const googleApiUrl = 'https://www.googleapis.com/customsearch/v1?key=' + apiKey + '&cx=' + cx + '&q=' + encodeURIComponent(rawQuery);
 
-      // Query-to-portal live web index mapping (Zero static database)
-      if (q.includes('student') || q.includes('scholarship') || q.includes('college') || q.includes('education')) {
-        researchResults = [
-          {
-            name: 'Pragati Scholarship Scheme for Girls (Degree/Diploma)',
-            portal: 'dte.maharashtra.gov.in',
-            grant: '₹50,000 / Year Tuition & Education Stipend',
-            desc: 'Technical degree and diploma financial aid for female students with family income under 8 Lakh.'
-          },
-          {
-            name: 'Post Matric Scholarship to the Girls - MahaDBT',
-            portal: 'mahadbt.maharashtra.gov.in',
-            grant: 'Full Tuition Fees, Exam Fees & Monthly Maintenance Allowance',
-            desc: 'Full reimbursement of tuition fees for girls in higher education government and aided colleges.'
-          },
-          {
-            name: 'Girl\'s Free Higher Education Scheme (DHE Pune)',
-            portal: 'dhepune.gov.in',
-            grant: '100% Complete Tuition Fee Reimbursement',
-            desc: 'Higher education tuition waiver for girl students admitted in state aided and unaided colleges.'
-          },
-          {
-            name: 'Rajarshi Chhatrapati Shahu Maharaj Merit Scholarship',
-            portal: 'mahadbt.maharashtra.gov.in',
-            grant: 'Direct DBT Merit Financial Assistance',
-            desc: 'Merit scholarship for students securing 75% or above in 10th/12th pursuing graduation.'
-          },
-          {
-            name: 'Scholarship for Students of Minority Communities Pursuing Higher Education',
-            portal: 'mdd.maharashtra.gov.in',
-            grant: '₹25,000 - ₹50,000 / Year Direct Scholarship',
-            desc: 'State scholarship for students from minority communities pursuing professional & technical degrees.'
-          }
-        ];
-      } else if (q.includes('viddava') || q.includes('vidhwa') || q.includes('widow') || q.includes('niradhar') || q.includes('pension')) {
-        researchResults = [
-          {
-            name: 'Indira Gandhi National Widow Pension Scheme',
-            portal: 'sjsa.maharashtra.gov.in',
-            grant: '₹1,500 / Month Direct DBT Monthly Pension',
-            desc: 'Social welfare scheme implemented by Dept of Social Justice for widows living below poverty line.'
-          },
-          {
-            name: 'Sanjay Gandhi Niradhar Anudaan Scheme',
-            portal: 'thane.nic.in / maharashtra.gov.in',
-            grant: '₹1,500 / Month Direct Financial Assistance',
-            desc: 'Financial support for destitute women, widows, and deserted women across Maharashtra.'
-          },
-          {
-            name: 'Mukhyamantri - Majhi Ladki Bahin Yojana',
-            portal: 'ladakibahin.maharashtra.gov.in',
-            grant: '₹1,500 / Month Direct Bank Account Transfer',
-            desc: 'Empowerment and economic safety support for eligible women aged 21 to 65 years.'
-          }
-        ];
-      } else if (q.includes('solar') || q.includes('pump') || q.includes('farmer') || q.includes('sheti')) {
-        researchResults = [
-          {
-            name: 'Magel Tyala Saur Krishi Pump Yojana (MahaVitaran)',
-            portal: 'mahadiscom.in',
-            grant: 'Up to 90% Subsidy for Solar Water Pumps',
-            desc: 'State initiative providing subsidised off-grid solar agricultural water pumps for irrigation.'
-          }
-        ];
+      const res = await fetch(googleApiUrl);
+      const data = await res.json();
+
+      if (data && data.items && data.items.length > 0) {
+        const liveCards = data.items.map((item, idx) => ({
+          id: 'G_LIVE_' + Date.now() + '_' + idx,
+          name: (item.title || 'Maharashtra Govt Scheme').replace(/\|.*$/, '').trim(),
+          portalName: item.displayLink || 'Official Govt Portal (Google Live Index)',
+          grant: 'Direct DBT / State Subsidy Assistance',
+          desc: item.snippet || 'Live official welfare scheme retrieved directly from state portal.',
+          sourceUrl: item.link,
+          requiredDocs: analyzeRequiredDocsForScheme(item.title, item.snippet)
+        }));
+
+        setSchemes(liveCards);
+        setSearchStatus('✓ Google Custom Search द्वारे ' + liveCards.length + ' अधिकृत योजना मिळाल्या!');
       } else {
-        const titleCase = rawQuery.charAt(0).toUpperCase() + rawQuery.slice(1);
-        researchResults = [
-          {
-            name: titleCase + ' Citizen Welfare & Subsidy Scheme',
-            portal: 'mahadbt.maharashtra.gov.in',
-            grant: 'Direct DBT / State Subsidy Assistance',
-            desc: 'Official government welfare initiative retrieved live for ' + rawQuery + ' under citizen public services.'
-          }
-        ];
+        setSearchStatus('Google Search मध्ये या क्वेरीसाठी थेट निकाल उपलब्ध नाही.');
       }
-
-      const formattedCards = researchResults.map((item, idx) => ({
-        id: 'LIVE_PORTAL_' + Date.now() + '_' + idx,
-        name: item.name,
-        portalName: item.portal + ' (Verified Official Portal)',
-        grant: item.grant,
-        desc: item.desc,
-        sourceUrl: 'https://' + item.portal.split(' ')[0],
-        requiredDocs: analyzeRequiredDocsForScheme(item.name, item.desc)
-      }));
-
-      setSchemes(formattedCards);
-      setSearchStatus('✓ Live web research complete! Found ' + formattedCards.length + ' official government schemes.');
     } catch (err) {
-      console.error('Research error:', err);
-      setSearchStatus('Search completed.');
+      console.error('Google search error:', err);
+      setSearchStatus('Search request failed. Please check network connectivity.');
     } finally {
       setIsSearching(false);
     }

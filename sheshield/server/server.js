@@ -462,6 +462,101 @@ function analyzeRequiredDocuments(title, snippet) {
   ];
 }
 
+
+// 100% Real-time Live Google Custom Search Engine Endpoint (Zero Database Storage)
+app.post('/api/google-live-search', async (req, res) => {
+  try {
+    const { query } = req.body;
+    if (!query || !query.trim()) return res.json({ schemes: [] });
+
+    const rawQuery = query.trim();
+    console.log('[GOOGLE LIVE SEARCH] Fetching official schemes for:', rawQuery);
+
+    const apiKey = process.env.GOOGLE_SEARCH_API_KEY || 'AIzaSyDj45KSn7NneMul-Qwm6rTtYwhnywsN94Y';
+    const cx = process.env.GOOGLE_SEARCH_CX || 'b581b982fcfd440a7';
+
+    const googleApiUrl = 'https://www.googleapis.com/customsearch/v1?key=' + apiKey + '&cx=' + cx + '&q=' + encodeURIComponent(rawQuery);
+
+    const googleRes = await fetch(googleApiUrl);
+    const data = await googleRes.json();
+
+    if (!data.items || data.items.length === 0) {
+      console.log('[GOOGLE LIVE SEARCH] No direct items returned from CSE for query:', rawQuery);
+      return res.json({ success: true, schemes: [] });
+    }
+
+    const liveSchemes = data.items.map((item, index) => {
+      const title = item.title || 'Maharashtra Govt Scheme';
+      const snippet = item.snippet || 'Official government welfare benefit retrieved live.';
+      const link = item.link || 'https://mahadbt.maharashtra.gov.in';
+
+      return {
+        id: 'G_LIVE_' + Date.now() + '_' + index,
+        name: title.replace(/\|.*$/, '').trim(),
+        portalName: item.displayLink || 'Official Govt Portal',
+        grant: 'Direct DBT / State Subsidy Assistance',
+        desc: snippet,
+        sourceUrl: link,
+        requiredDocs: extractLiveDocuments(title, snippet)
+      };
+    });
+
+    return res.json({ success: true, schemes: liveSchemes });
+  } catch (err) {
+    console.error('Google Search API error:', err);
+    return res.status(500).json({ error: 'Failed to fetch live Google search results' });
+  }
+});
+
+// Dynamic Semantic Document Matcher based on official scheme title & snippet
+function extractLiveDocuments(title = '', snippet = '') {
+  const text = (title + ' ' + snippet).toLowerCase();
+  const identityDoc = { id: 'aadhaar', name: 'Aadhaar Card' };
+  const passbookDoc = { id: 'passbook', name: 'Bank Passbook (Aadhaar Seeded DBT)' };
+  const incomeDoc = { id: 'income_cert', name: 'Income Certificate (Tehsildar)' };
+
+  if (text.match(/scholarship|student|college|education|matric|merit|fee|admission|school|dhe|dte/)) {
+    return [
+      identityDoc,
+      incomeDoc,
+      { id: 'bonafide', name: 'College Admission Bonafide / Marksheet' },
+      passbookDoc
+    ];
+  }
+
+  if (text.match(/widow|viddava|vidhwa|niradhar|destitute|pension/)) {
+    return [
+      identityDoc,
+      { id: 'death_cert', name: 'Husband Death Certificate (पतीचा मृत्यू दाखला)' },
+      incomeDoc,
+      passbookDoc
+    ];
+  }
+
+  if (text.match(/farmer|sheti|krishi|solar|pump|land|agriculture|saur/)) {
+    return [
+      identityDoc,
+      { id: 'land_extract', name: '7/12 & 8A Land Extract (सातबारा व ८अ उतारा)' },
+      passbookDoc
+    ];
+  }
+
+  if (text.match(/loan|business|mudra|samridhi|microfinance|startup|udyog/)) {
+    return [
+      identityDoc,
+      { id: 'business_proof', name: 'Business Proposal / Udyam Registration' },
+      incomeDoc,
+      passbookDoc
+    ];
+  }
+
+  return [
+    identityDoc,
+    { id: 'ration_card', name: 'Ration Card (Orange / Yellow) / Domicile Certificate' },
+    passbookDoc
+  ];
+}
+
 app.listen(PORT, () => {
   console.log(`Sheshield 2.0 Backend running on port ${PORT}`);
 });
