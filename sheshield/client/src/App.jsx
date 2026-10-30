@@ -16,7 +16,8 @@ export default function App() {
       return 'en';
     }
   };
-
+  const API_BASE_URL = 'https://sheshield-8jz3.vercel.app';
+  fetch('https://sheshield-8jz3.vercel.app/api/...')
   const [activeView, setActiveView] = useState('home');
   const [currentUser, setCurrentUser] = useState(null);
   const [selectedLang, setSelectedLang] = useState(getInitialLang);
