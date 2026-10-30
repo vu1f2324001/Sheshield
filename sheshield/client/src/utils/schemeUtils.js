@@ -370,5 +370,5 @@ export default function DashboardView({ user = { name: 'Akshada' }, onLogout, on
       </main>
     </div>
   );
-                  }
+}
                   
