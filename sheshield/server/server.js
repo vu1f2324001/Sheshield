@@ -7,6 +7,9 @@ if (process.env.NODE_ENV !== 'test') {
   connectDB();
 }
 
+app.get('/', (req, res) => {
+  res.json({ status: 'Sheshield Backend API is Live!' });
+});
 
 // Direct Google Search for Maharashtra Govt Schemes
 app.post('/api/search-schemes', async (req, res) => {
