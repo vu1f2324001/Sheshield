@@ -560,3 +560,4 @@ function extractLiveDocuments(title = '', snippet = '') {
 app.listen(PORT, () => {
   console.log(`Sheshield 2.0 Backend running on port ${PORT}`);
 });
+module.exports = app;
