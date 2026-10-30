@@ -344,8 +344,6 @@ export default function App() {
       <footer className="bg-[#111827] border-t border-slate-800 py-3 text-center text-xs text-slate-400">
         Sheshield 2.0 • Autonomous Civic AI Platform
       </footer>
-        </div>
-      )}
     </div>
   );
 }
