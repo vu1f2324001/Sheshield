@@ -1,171 +1,11 @@
-
-// Dynamically determine required documents for a scheme
-const analyzeRequiredDocsForScheme = (title = '', desc = '') => {
-  const content = (title + ' ' + desc).toLowerCase();
-  const identityDoc = { id: 'aadhaar', name: 'Aadhaar Card' };
-  const passbookDoc = { id: 'passbook', name: 'Bank Passbook (Aadhaar Seeded DBT)' };
-  const incomeDoc = { id: 'income_cert', name: 'Income Certificate (Tehsildar)' };
-
-  // 1. Student / College / Scholarship
-  if (content.match(/scholarship|student|college|education|matric|merit|fee|admission|dhe|dte/)) {
-    return [
-      identityDoc,
-      incomeDoc,
-      { id: 'bonafide', name: 'College Admission Bonafide / Marksheet' },
-      passbookDoc
-    ];
-  }
-
-  // 2. Widow / Destitute / Niradhar
-  if (content.match(/widow|viddava|vidhwa|niradhar|destitute|pension/)) {
-    return [
-      identityDoc,
-      { id: 'death_cert', name: 'Husband Death Certificate (पतीचा मृत्यू दाखला)' },
-      incomeDoc,
-      passbookDoc
-    ];
-  }
-
-  // 3. Farmer / Agriculture / Solar Pump
-  if (content.match(/farmer|sheti|krishi|solar|pump|land|agriculture|saur/)) {
-    return [
-      identityDoc,
-      { id: 'land_extract', name: '7/12 & 8A Land Extract (सातबारा व ८अ उतारा)' },
-      passbookDoc
-    ];
-  }
-
-  // 4. Business / Loan / Microfinance
-  if (content.match(/loan|business|mudra|samridhi|microfinance|startup/)) {
-    return [
-      identityDoc,
-      { id: 'business_proof', name: 'Business Proposal / Udyam Registration' },
-      incomeDoc,
-      passbookDoc
-    ];
-  }
-
-  // 5. Default Public Welfare
-  return [
-    identityDoc,
-    { id: 'ration_card', name: 'Ration Card (Orange / Yellow) / Domicile Certificate' },
-    passbookDoc
-  ];
-};
-
-
-const extractDynamicRequiredDocs = (schemeTitle = '', schemeDesc = '') => {
-  const combined = (schemeTitle + ' ' + schemeDesc).toLowerCase();
-
-  // Basic Universal Documents for Govt DBT Scheme
-  const docs = [
-    { id: 'aadhaar', name: 'Aadhaar Card' }
-  ];
-
-  // 1. Education / College / Scholarship
-  if (combined.match(/student|scholarship|college|education|school|merit|fee|matric|pragati|dhe|dte/)) {
-    docs.push({ id: 'bonafide', name: 'College Admission Bonafide / Marksheet' });
-    docs.push({ id: 'income_cert', name: 'Income Certificate (Tehsildar)' });
-  }
-  // 2. Widow / Destitute
-  else if (combined.match(/widow|viddava|vidhwa|niradhar|pension|destitute/)) {
-    docs.push({ id: 'death_cert', name: 'Husband Death Certificate (पतीचा मृत्यू दाखला)' });
-    docs.push({ id: 'income_cert', name: 'BPL / Income Certificate' });
-  }
-  // 3. Farmer / Agriculture / Solar Pump
-  else if (combined.match(/farmer|sheti|krishi|solar|pump|land|agriculture|saur/)) {
-    docs.push({ id: 'land_extract', name: '7/12 & 8A Land Extract (सातबारा व ८अ उतारा)' });
-  }
-  // 4. Business / Loan / Microfinance
-  else if (combined.match(/loan|business|mudra|samridhi|startup|udyog/)) {
-    docs.push({ id: 'business_proof', name: 'Business Proposal / Udyam Registration' });
-    docs.push({ id: 'income_cert', name: 'Income Certificate' });
-  }
-  // 5. Default Public Welfare
-  else {
-    docs.push({ id: 'ration_card', name: 'Ration Card (Orange / Yellow) / Domicile' });
-    docs.push({ id: 'income_cert', name: 'Income Certificate' });
-  }
-
-  // Common Bank DBT requirement
-  docs.push({ id: 'passbook', name: 'Bank Passbook (Aadhaar Seeded DBT)' });
-
-  return docs;
-};
-
-
-// Dynamically determine required documents based on live scheme title and description
-const getRequiredDocsForLiveScheme = (title = '', desc = '') => {
-  const text = (title + ' ' + desc).toLowerCase();
-
-  // Common base documents
-  const aadhaarDoc = { id: 'aadhaar', name: 'Aadhaar Card', allowed: ['aadhaar', 'adhar', 'uidai'], disallowed: ['marksheet', 'fee'] };
-  const passbookDoc = { id: 'passbook', name: 'Bank Passbook (Aadhaar Seeded DBT)', allowed: ['passbook', 'bank', 'account'], disallowed: ['apaar', 'school'] };
-  const incomeDoc = { id: 'income_cert', name: 'Income Certificate (Tehsildar)', allowed: ['income', 'tehsildar', 'utpanna'], disallowed: ['aadhaar'] };
-
-  // 1. Student / Scholarship / College / School Schemes
-  if (text.includes('scholarship') || text.includes('student') || text.includes('education') || text.includes('merit') || text.includes('college') || text.includes('school') || text.includes('matric') || text.includes('dhe') || text.includes('dte')) {
-    return [
-      aadhaarDoc,
-      incomeDoc,
-      { id: 'bonafide', name: 'College Admission Bonafide / Marksheet', allowed: ['bonafide', 'marksheet', 'fee', 'admission'], disallowed: ['passbook'] },
-      passbookDoc
-    ];
-  }
-
-  // 2. Widow / Destitute / Niradhar Pension Schemes
-  if (text.includes('widow') || text.includes('viddava') || text.includes('vidhwa') || text.includes('niradhar') || text.includes('destitute') || text.includes('pension')) {
-    return [
-      aadhaarDoc,
-      { id: 'death_cert', name: 'Husband Death Certificate', allowed: ['death', 'मृत्यू', 'mrutyu', 'pramanpatra'], disallowed: ['marksheet'] },
-      incomeDoc,
-      passbookDoc
-    ];
-  }
-
-  // 3. Farmer / Solar Pump / Agriculture / Krishi Schemes
-  if (text.includes('farmer') || text.includes('kisan') || text.includes('solar') || text.includes('sheti') || text.includes('krishi') || text.includes('pump') || text.includes('land')) {
-    return [
-      aadhaarDoc,
-      { id: 'land_extract', name: '7/12 & 8A Land Extract (सातबारा व ८अ उतारा)', allowed: ['7/12', '8a', 'land', 'utara', 'satbara'], disallowed: ['marksheet'] },
-      passbookDoc
-    ];
-  }
-
-  // 4. Women Entrepreneur / Loan / Business Schemes
-  if (text.includes('loan') || text.includes('mudra') || text.includes('samridhi') || text.includes('business') || text.includes('udyog') || text.includes('bachat')) {
-    return [
-      aadhaarDoc,
-      { id: 'business_proof', name: 'Business Proposal / Udyam Aadhaar Registration', allowed: ['udyam', 'business', 'proposal', 'shop'], disallowed: ['marksheet'] },
-      incomeDoc,
-      passbookDoc
-    ];
-  }
-
-  // 5. Girl Child / Nutrition / Family Schemes (e.g. Lek Ladki, Kanya Bhagyashree)
-  if (text.includes('girl') || text.includes('lek ladki') || text.includes('kanya') || text.includes('child') || text.includes('birth')) {
-    return [
-      aadhaarDoc,
-      { id: 'birth_cert', name: 'Child Birth Certificate (जन्म दाखला)', allowed: ['birth', 'janma', 'certificate'], disallowed: ['marksheet'] },
-      incomeDoc,
-      passbookDoc
-    ];
-  }
-
-  // 6. Default Social Welfare Document Set
-  return [
-    aadhaarDoc,
-    { id: 'ration_card', name: 'Ration Card (Orange / Yellow) or Domicile', allowed: ['ration', 'domicile', 'food', 'rahavasi'], disallowed: ['marksheet'] },
-    passbookDoc
-  ];
-};
-
 import React, { useState } from 'react';
 import { 
-  Shield, CheckCircle, ArrowRight, Sparkles, UploadCloud, 
+  Shield, CheckCircle, UploadCloud, 
   Bot, KeyRound, Check, XCircle, LogOut, User, ArrowLeft, ScanText, 
-  Search, Loader2, LogIn, Globe, ExternalLink
+  Search, Loader2, LogIn, Globe, ExternalLink, LayoutDashboard
 } from 'lucide-react';
+import DashboardView from './DashboardView';
+import { analyzeRequiredDocsForScheme, handleLanguageSwitch } from './utils/schemeUtils';
 
 export default function App() {
   const getInitialLang = () => {
@@ -193,36 +33,6 @@ export default function App() {
   const [searchStatus, setSearchStatus] = useState('');
   const [liveGoogleUrl, setLiveGoogleUrl] = useState('');
 
-  const changeLanguage = (langCode) => {
-    setSelectedLang(langCode);
-    const domain = window.location.hostname;
-    const isLocal = domain === 'localhost' || domain === '127.0.0.1';
-
-    if (langCode === 'en') {
-      document.cookie = 'googtrans=/en/en; path=/;' + (isLocal ? '' : ' domain=' + domain + ';');
-      document.cookie = 'googtrans=/en/en; path=/;';
-      const combo = document.querySelector('.goog-te-combo');
-      if (combo) {
-        combo.value = 'en';
-        combo.dispatchEvent(new Event('change'));
-      }
-      setTimeout(() => {
-        window.location.href = window.location.origin + window.location.pathname;
-      }, 100);
-      return;
-    }
-
-    document.cookie = 'googtrans=/en/' + langCode + '; path=/;' + (isLocal ? '' : ' domain=' + domain + ';');
-    document.cookie = 'googtrans=/en/' + langCode + '; path=/;';
-    const combo = document.querySelector('.goog-te-combo');
-    if (combo) {
-      combo.value = langCode;
-      combo.dispatchEvent(new Event('change'));
-    }
-    setTimeout(() => { window.location.reload(); }, 150);
-  };
-  const ALL_MAHARASHTRA_SCHEMES = [];
-
   const [schemes, setSchemes] = useState([]);
   const [selectedScheme, setSelectedScheme] = useState(null);
   const [uploadedDocs, setUploadedDocs] = useState({});
@@ -233,6 +43,11 @@ export default function App() {
   const [filledFields, setFilledFields] = useState([]);
   const [portalOtp, setPortalOtp] = useState('');
   const [applicationRef, setApplicationRef] = useState('');
+
+  const onLanguageChange = (code) => {
+    setSelectedLang(code);
+    handleLanguageSwitch(code);
+  };
 
   const handleSelectScheme = (sch) => {
     if (!currentUser) {
@@ -257,19 +72,21 @@ export default function App() {
       setAuthError('कृपया आधार प्रमाणे पूर्ण नाव भरा.');
       return;
     }
-    setCurrentUser({
-      fullName: fullName || authEmail.split('@')[0] || 'Registered Woman Beneficiary',
+    
+    const userObj = {
+      name: fullName || (authEmail ? authEmail.split('@')[0] : 'Akshada'),
+      fullName: fullName || (authEmail ? authEmail.split('@')[0] : 'Akshada Valkunde'),
       email: authEmail,
       mobile: mobileNumber || '9876543210',
       income: 150000
-    });
-    setActiveView('home');
+    };
+    setCurrentUser(userObj);
+    setActiveView('dashboard');
     setAuthError('');
   };
 
-                              const handleGoogleSchemeSearch = async (e) => {
-    if (e) e.preventDefault();
-    const rawQuery = (aiPromptInput || '').trim();
+  const executeSchemeSearch = async (searchTerm) => {
+    const rawQuery = (searchTerm || '').trim();
     if (!rawQuery) {
       setSchemes([]);
       setSearchStatus('');
@@ -278,70 +95,44 @@ export default function App() {
 
     setIsSearching(true);
     setSchemes([]);
-    setSearchStatus('Connecting directly to Google Custom Search Engine for: "' + rawQuery + '"...');
-
-    const googleQueryUrl = 'https://www.google.com/search?q=' + encodeURIComponent(rawQuery + ' site:mahadbt.maharashtra.gov.in OR site:myscheme.gov.in');
-    setLiveGoogleUrl(googleQueryUrl);
+    setSearchStatus('Searching live government network for: "' + rawQuery + '"...');
+    setLiveGoogleUrl('https://www.google.com/search?q=' + encodeURIComponent(rawQuery + ' site:mahadbt.maharashtra.gov.in OR site:myscheme.gov.in'));
 
     try {
-      const apiKey = 'AIzaSyDj45KSn7NneMul-Qwm6rTtYwhnywsN94Y';
-      const cx = 'b581b982fcfd440a7';
-      const googleApiUrl = 'https://www.googleapis.com/customsearch/v1?key=' + apiKey + '&cx=' + cx + '&q=' + encodeURIComponent(rawQuery);
-
-      const res = await fetch(googleApiUrl);
+      const backendUrl = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:5000';
+      const res = await fetch(`${backendUrl}/api/google-live-search`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: rawQuery })
+      });
       const data = await res.json();
 
-      if (data && data.items && data.items.length > 0) {
-        const liveCards = data.items.map((item, idx) => ({
-          id: 'G_LIVE_' + Date.now() + '_' + idx,
-          name: (item.title || 'Maharashtra Govt Scheme').replace(/\|.*$/, '').trim(),
-          portalName: item.displayLink || 'Official Govt Portal (Google Live Index)',
-          grant: 'Direct DBT / State Subsidy Assistance',
-          desc: item.snippet || 'Live official welfare scheme retrieved directly from state portal.',
-          sourceUrl: item.link,
-          requiredDocs: analyzeRequiredDocsForScheme(item.title, item.snippet)
-        }));
-
-        setSchemes(liveCards);
-        setSearchStatus('✓ Google Custom Search द्वारे ' + liveCards.length + ' अधिकृत योजना मिळाल्या!');
+      if (data && data.success && Array.isArray(data.schemes) && data.schemes.length > 0) {
+        setSchemes(data.schemes);
+        setSearchStatus('✓ ' + data.schemes.length + ' official live schemes found!');
       } else {
-        setSearchStatus('Google Search मध्ये या क्वेरीसाठी थेट निकाल उपलब्ध नाही.');
+        setSearchStatus('या क्वेरीसाठी थेट निकाल उपलब्ध नाही.');
       }
     } catch (err) {
-      console.error('Google search error:', err);
-      setSearchStatus('Search request failed. Please check network connectivity.');
+      console.error('Search error:', err);
+      setSearchStatus('Network error connecting to live search backend.');
     } finally {
       setIsSearching(false);
     }
   };
+
   const handleUploadFile = (docObj, file) => {
     if (!file) return;
     const docId = docObj.id;
-    const nameLower = file.name.toLowerCase();
-    const hasBad = docObj.disallowed.some(bad => nameLower.includes(bad));
-    const hasGood = docObj.allowed.some(good => nameLower.includes(good));
-
-    if (hasBad || !hasGood) {
-      setDocErrors(prev => ({ ...prev, [docId]: 'अवैध फाईल! कृपया अधिकृत ' + docObj.name + ' जोडा.' }));
-      setUploadedDocs(prev => { const c = { ...prev }; delete c[docId]; return c; });
-      return;
-    }
-
     setDocErrors(prev => { const c = { ...prev }; delete c[docId]; return c; });
     setUploadedDocs(prev => ({ ...prev, [docId]: { name: file.name, status: 'VERIFIED' } }));
 
-    setExtractedData(prev => {
-      let u = { ...prev };
-      if (docId === 'aadhaar') {
-        u['Beneficiary Legal Name'] = currentUser?.fullName || 'Beneficiary';
-        u['UIDAI Aadhaar'] = '[Aadhaar Redacted]';
-      } else if (docId === 'income_cert') {
-        u['Annual Family Income'] = '₹1,50,000 (Certified by Revenue Dept)';
-      } else if (docId === 'passbook') {
-        u['DBT Bank Account'] = 'Active Nationalized Bank (Aadhaar Seeded)';
-      }
-      return u;
-    });
+    setExtractedData(prev => ({
+      ...prev,
+      ...(docId === 'aadhaar' ? { 'Beneficiary Legal Name': currentUser?.fullName || 'Beneficiary', 'UIDAI Aadhaar': '[Aadhaar Redacted]' } : {}),
+      ...(docId === 'income_cert' ? { 'Annual Family Income': '₹1,50,000 (Certified by Revenue Dept)' } : {}),
+      ...(docId === 'passbook' ? { 'DBT Bank Account': 'Active Nationalized Bank (Aadhaar Seeded)' } : {})
+    }));
   };
 
   const handleAutoAttachDemo = () => {
@@ -380,12 +171,28 @@ export default function App() {
     }, 1000);
   };
 
+  if (currentUser && activeView === 'dashboard') {
+    return (
+      <DashboardView
+        user={currentUser}
+        onLogout={() => { setCurrentUser(null); setActiveView('home'); }}
+        onNavigateSearch={(term) => {
+          setActiveView('home');
+          if (term) {
+            setAiPromptInput(term);
+            executeSchemeSearch(term);
+          }
+        }}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#0d1321] text-slate-100 font-sans flex flex-col justify-between">
-      {/* Navbar */}
+      {/* Header */}
       <header className="bg-[#111827]/90 backdrop-blur-md border-b border-slate-800 sticky top-0 z-50 px-4 py-3.5 shadow-sm">
         <div className="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-3">
-          <div className="flex items-center gap-2.5 cursor-pointer select-none" onClick={() => { setActiveView('home'); setSelectedScheme(null); setActiveWorkflow(null); }}>
+          <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => { setActiveView('home'); setSelectedScheme(null); setActiveWorkflow(null); }}>
             <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-purple-500 to-indigo-600 flex items-center justify-center text-white shadow-md">
               <Shield size={22} />
             </div>
@@ -396,42 +203,28 @@ export default function App() {
           </div>
 
           <div className="flex items-center gap-2.5">
-            <div className="notranslate flex items-center gap-1.5 bg-[#1e293b] border border-purple-500/50 hover:border-purple-400 px-3 py-1.5 rounded-xl text-xs shadow-md transition">
-              <Globe size={14} className="text-purple-400 shrink-0" />
-              <select 
-                value={selectedLang} 
-                onChange={(e) => changeLanguage(e.target.value)}
-                className="notranslate bg-transparent text-slate-100 font-bold text-xs outline-none cursor-pointer pr-1"
-              >
-                <option value="en" className="bg-[#0f172a] text-white">English (Default)</option>
-                <option value="mr" className="bg-[#0f172a] text-white">मराठी (Marathi)</option>
-                <option value="hi" className="bg-[#0f172a] text-white">हिंदी (Hindi)</option>
-                <option value="bn" className="bg-[#0f172a] text-white">বাংলা (Bengali)</option>
-                <option value="gu" className="bg-[#0f172a] text-white">ગુજરાતી (Gujarati)</option>
-                <option value="ta" className="bg-[#0f172a] text-white">தமிழ் (Tamil)</option>
-                <option value="te" className="bg-[#0f172a] text-white">తెలుగు (Telugu)</option>
-                <option value="kn" className="bg-[#0f172a] text-white">ಕನ್ನಡ (Kannada)</option>
-                <option value="pa" className="bg-[#0f172a] text-white">ਪੰਜਾਬੀ (Punjabi)</option>
-                <option value="ml" className="bg-[#0f172a] text-white">മലയാളം (Malayalam)</option>
-                <option value="or" className="bg-[#0f172a] text-white">ଓଡ଼ିଆ (Odia)</option>
-                <option value="as" className="bg-[#0f172a] text-white">অসমীয়া (Assamese)</option>
-                <option value="ur" className="bg-[#0f172a] text-white">اردو (Urdu)</option>
+            <div className="flex items-center gap-1.5 bg-[#1e293b] border border-purple-500/50 px-3 py-1.5 rounded-xl text-xs">
+              <Globe size={14} className="text-purple-400" />
+              <select value={selectedLang} onChange={(e) => onLanguageChange(e.target.value)} className="bg-transparent text-slate-100 font-bold text-xs outline-none">
+                <option value="en" className="bg-[#0f172a]">English (Default)</option>
+                <option value="mr" className="bg-[#0f172a]">मराठी (Marathi)</option>
+                <option value="hi" className="bg-[#0f172a]">हिंदी (Hindi)</option>
               </select>
             </div>
 
-            <button onClick={() => { setActiveView('home'); setSelectedScheme(null); setActiveWorkflow(null); }} className={'px-3 py-1 font-bold text-xs rounded-xl transition ' + (activeView === 'home' && !selectedScheme ? 'text-purple-400 bg-purple-500/15' : 'text-slate-400 hover:text-white')}>
+            <button onClick={() => { setActiveView('home'); setSelectedScheme(null); setActiveWorkflow(null); }} className={'px-3 py-1 font-bold text-xs rounded-xl ' + (activeView === 'home' && !selectedScheme ? 'text-purple-400 bg-purple-500/15' : 'text-slate-400')}>
               Home
             </button>
 
             {currentUser ? (
               <div className="flex items-center gap-2">
-                <span className="bg-purple-500/15 border border-purple-500/30 px-3 py-1.5 rounded-xl font-bold text-xs text-purple-200 flex items-center gap-1.5">
-                  <User size={13} className="text-purple-400" /> {currentUser.fullName}
-                </span>
-                <button onClick={() => { setCurrentUser(null); setActiveView('home'); }} className="p-1.5 text-slate-400 hover:text-rose-400 rounded-xl transition" title="Logout"><LogOut size={16} /></button>
+                <button onClick={() => setActiveView('dashboard')} className="bg-purple-600 hover:bg-purple-500 text-white px-3 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1.5">
+                  <LayoutDashboard size={13} /> Dashboard
+                </button>
+                <button onClick={() => { setCurrentUser(null); setActiveView('home'); }} className="p-1.5 text-slate-400 hover:text-rose-400 rounded-xl"><LogOut size={16} /></button>
               </div>
             ) : (
-              <button onClick={() => { setAuthError(''); setActiveView('signin'); }} className="px-4 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center gap-1.5">
+              <button onClick={() => { setAuthError(''); setActiveView('signin'); }} className="px-4 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold text-xs rounded-xl flex items-center gap-1.5">
                 <LogIn size={13} /> Sign In
               </button>
             )}
@@ -439,308 +232,117 @@ export default function App() {
         </div>
       </header>
 
-      {/* Main Workspace */}
+      {/* Main Container */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-8">
         {activeView === 'home' && !selectedScheme && (
           <div className="space-y-8 py-2">
             <div className="text-center max-w-3xl mx-auto space-y-4">
-              <span className="inline-flex items-center gap-1.5 px-3.5 py-1 bg-purple-500/15 border border-purple-500/30 text-purple-300 rounded-full text-[11px] font-bold">
-                <Sparkles size={13} className="text-purple-400" /> Civic Empowerment Engine for All Women Across Maharashtra
-              </span>
-
-              <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight">
+              <h1 className="text-3xl sm:text-5xl font-black text-white">
                 Empowering Every Woman With <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-indigo-300 to-purple-500">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-indigo-300">
                   Autonomous AI Benefits & Subsidies.
                 </span>
               </h1>
 
-              <p className="text-slate-300 text-xs sm:text-sm">
-                Students, entrepreneurs, homemakers, widows or senior women—discover matching welfare schemes based on your documents and submit directly.
-              </p>
-
-              {/* AI Scheme Search Box */}
-              <div className="bg-[#161f38] border border-purple-500/30 rounded-2xl p-4 shadow-xl space-y-2.5 text-left">
-                <span className="text-[11px] font-bold text-purple-300 flex items-center gap-1.5">
-                  <Bot size={14} className="text-purple-400" /> AI Document & Scheme Recommender:
-                </span>
-                <form onSubmit={handleGoogleSchemeSearch} className="flex flex-col sm:flex-row gap-2">
+              {/* Search Box */}
+              <div className="bg-[#161f38] border border-purple-500/30 rounded-2xl p-4 space-y-2.5 text-left">
+                <form onSubmit={(e) => { e.preventDefault(); executeSchemeSearch(aiPromptInput); }} className="flex flex-col sm:flex-row gap-2">
                   <input 
                     type="text" 
                     value={aiPromptInput} 
                     onChange={e => setAiPromptInput(e.target.value)} 
-                    placeholder="उदा. viddava bai sathi, loan for women, scholarship..." 
-                    className="flex-1 bg-[#0d1321] border border-slate-700 p-2.5 rounded-xl text-xs text-white outline-none focus:border-purple-500 placeholder-slate-500" 
+                    placeholder="उदा. Student, scholarship, loan..." 
+                    className="flex-1 bg-[#0d1321] border border-slate-700 p-2.5 rounded-xl text-xs text-white outline-none focus:border-purple-500" 
                   />
-                  <button type="submit" disabled={isSearching} className="px-4 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 shrink-0 shadow-md">
+                  <button type="submit" disabled={isSearching} className="px-4 py-2.5 bg-purple-600 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5">
                     {isSearching ? <Loader2 size={14} className="animate-spin" /> : <Search size={14} />} AI Search
                   </button>
-                  {aiPromptInput && (
-                    <a 
-                      href={'https://www.google.com/search?q=' + encodeURIComponent(aiPromptInput + ' maharashtra government scheme for women site:gov.in OR site:nic.in')}
-                      target="_blank" 
-                      rel="noreferrer" 
-                      className="px-3.5 py-2.5 bg-blue-600/80 hover:bg-blue-600 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 shrink-0 shadow-md transition"
-                    >
-                      <ExternalLink size={13} /> Google वर उघडा
-                    </a>
-                  )}
                 </form>
-
-                {searchStatus && (
-                  <div className="p-2.5 bg-purple-950/60 border border-purple-500/40 rounded-xl text-xs text-purple-200 flex flex-wrap items-center justify-between gap-2">
-                    <span>{searchStatus}</span>
-                    {liveGoogleUrl && (
-                      <a 
-                        href={liveGoogleUrl} 
-                        target="_blank" 
-                        rel="noreferrer" 
-                        className="px-2.5 py-1 bg-purple-600/50 hover:bg-purple-600 border border-purple-400/50 text-white font-bold text-[11px] rounded-lg inline-flex items-center gap-1 transition"
-                      >
-                        <ExternalLink size={12} /> Google Search Results
-                      </a>
-                    )}
-                  </div>
-                )}
+                {searchStatus && <div className="text-xs text-purple-200 mt-2">{searchStatus}</div>}
               </div>
             </div>
 
-            {/* Scheme Cards Grid */}
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <h3 className="text-base sm:text-lg font-black text-white">उपलब्ध शासकीय कल्याणकारी योजना ({schemes.length})</h3>
-                {schemes.length !== ALL_MAHARASHTRA_SCHEMES.length && (
-                  <button onClick={() => { setSchemes(ALL_MAHARASHTRA_SCHEMES); setSearchStatus(''); setAiPromptInput(''); }} className="text-xs text-purple-400 hover:underline font-bold">सर्व योजना पाहा (Reset)</button>
-                )}
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {schemes.map((sch) => (
-                  <div key={sch.id} className="bg-[#161f38] border border-slate-700/80 hover:border-purple-500/50 rounded-2xl p-5 shadow-lg flex flex-col justify-between space-y-4 transition">
-                    <div className="space-y-2">
-                      <span className="text-[9px] font-bold text-purple-300 bg-purple-500/15 border border-purple-500/20 px-2 py-0.5 rounded-full inline-block">{sch.portalName}</span>
-                      <h4 className="font-bold text-sm text-white">{sch.name}</h4>
-                      <div className="text-sm font-extrabold text-purple-400">{sch.grant}</div>
-                      <p className="text-xs text-slate-400 leading-relaxed">{sch.desc}</p>
-                    </div>
-                    
-                    <button onClick={() => handleSelectScheme(sch)} className="w-full py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-md transition">
-                      Apply with AI Agent →
-                    </button>
+            {/* Schemes Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {schemes.map((sch) => (
+                <div key={sch.id} className="bg-[#161f38] border border-slate-700/80 rounded-2xl p-5 flex flex-col justify-between space-y-4">
+                  <div className="space-y-2">
+                    <span className="text-[9px] font-bold text-purple-300 bg-purple-500/15 px-2 py-0.5 rounded-full inline-block">{sch.portalName}</span>
+                    <h4 className="font-bold text-sm text-white">{sch.name}</h4>
+                    <p className="text-xs text-slate-400">{sch.desc}</p>
                   </div>
-                ))}
-              </div>
+                  <button onClick={() => handleSelectScheme(sch)} className="w-full py-2.5 bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs rounded-xl">
+                    Apply with AI Agent →
+                  </button>
+                </div>
+              ))}
             </div>
           </div>
         )}
 
-        {/* Dual Sign In / Sign Up Modal */}
+        {/* Sign In View */}
         {activeView === 'signin' && !currentUser && (
-          <div className="max-w-md mx-auto bg-[#161f38] border border-slate-700 p-6 sm:p-8 rounded-3xl shadow-2xl space-y-5 my-4">
-            <div className="flex bg-[#0d1321] p-1 rounded-2xl border border-slate-800">
-              <button 
-                type="button"
-                onClick={() => { setAuthMode('signin'); setAuthError(''); }}
-                className={'flex-1 py-2 font-bold text-xs rounded-xl transition flex items-center justify-center gap-1.5 ' + (authMode === 'signin' ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow' : 'text-slate-400 hover:text-white')}
-              >
-                <LogIn size={13} /> Sign In
-              </button>
-              <button 
-                type="button"
-                onClick={() => { setAuthMode('signup'); setAuthError(''); }}
-                className={'flex-1 py-2 font-bold text-xs rounded-xl transition flex items-center justify-center gap-1.5 ' + (authMode === 'signup' ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow' : 'text-slate-400 hover:text-white')}
-              >
-                <User size={13} /> Sign Up
-              </button>
-            </div>
-
-            <div className="text-center space-y-1">
-              <h2 className="text-xl font-bold text-white">
-                {authMode === 'signin' ? 'Sign In to Sheshield' : 'Create Beneficiary Account'}
-              </h2>
-              <p className="text-xs text-slate-400">
-                {authMode === 'signin' 
-                  ? 'Access scheme applications and autonomous submission' 
-                  : 'Register as a woman beneficiary for state welfare schemes'}
-              </p>
-            </div>
-
-            {authError && <div className="p-2.5 bg-rose-950/80 border border-rose-500/50 rounded-xl text-xs text-rose-200">{authError}</div>}
-
-            <form onSubmit={handleAuthSubmit} className="space-y-3.5 text-xs">
-              {authMode === 'signup' && (
-                <>
-                  <div>
-                    <label className="text-slate-300 block mb-1 font-semibold">Full Legal Name (as per Aadhaar):</label>
-                    <input 
-                      type="text" 
-                      required 
-                      placeholder="E.g., Anita Ramesh Kadam" 
-                      value={fullName} 
-                      onChange={e => setFullName(e.target.value)} 
-                      className="w-full bg-[#0d1321] border border-slate-700 p-2.5 rounded-xl text-white outline-none focus:border-purple-500" 
-                    />
-                  </div>
-                  <div>
-                    <label className="text-slate-300 block mb-1 font-semibold">Mobile Number:</label>
-                    <input 
-                      type="tel" 
-                      placeholder="E.g., 9876543210" 
-                      value={mobileNumber} 
-                      onChange={e => setMobileNumber(e.target.value)} 
-                      className="w-full bg-[#0d1321] border border-slate-700 p-2.5 rounded-xl text-white outline-none focus:border-purple-500" 
-                    />
-                  </div>
-                </>
-              )}
-
-              <div>
-                <label className="text-slate-300 block mb-1 font-semibold">Email ID:</label>
-                <input 
-                  type="email" 
-                  required 
-                  placeholder="user@example.com" 
-                  value={authEmail} 
-                  onChange={e => setAuthEmail(e.target.value)} 
-                  className="w-full bg-[#0d1321] border border-slate-700 p-2.5 rounded-xl text-white outline-none focus:border-purple-500" 
-                />
-              </div>
-
-              <div>
-                <label className="text-slate-300 block mb-1 font-semibold">Password:</label>
-                <input 
-                  type="password" 
-                  required 
-                  placeholder="••••••••" 
-                  value={authPassword} 
-                  onChange={e => setAuthPassword(e.target.value)} 
-                  className="w-full bg-[#0d1321] border border-slate-700 p-2.5 rounded-xl text-white outline-none focus:border-purple-500" 
-                />
-              </div>
-
-              <button type="submit" className="w-full py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 text-white font-bold rounded-xl shadow-lg transition">
-                {authMode === 'signin' ? 'Sign In & Continue →' : 'Create Account & Continue →'}
-              </button>
+          <div className="max-w-md mx-auto bg-[#161f38] border border-slate-700 p-6 rounded-3xl space-y-4">
+            <h2 className="text-xl font-bold text-white text-center">Sign In to Sheshield</h2>
+            {authError && <div className="p-2 text-xs text-rose-300 bg-rose-950/60 rounded">{authError}</div>}
+            <form onSubmit={handleAuthSubmit} className="space-y-3 text-xs">
+              <input type="email" required placeholder="user@example.com" value={authEmail} onChange={e => setAuthEmail(e.target.value)} className="w-full bg-[#0d1321] border border-slate-700 p-2.5 rounded-xl text-white outline-none" />
+              <input type="password" required placeholder="••••••••" value={authPassword} onChange={e => setAuthPassword(e.target.value)} className="w-full bg-[#0d1321] border border-slate-700 p-2.5 rounded-xl text-white outline-none" />
+              <button type="submit" className="w-full py-3 bg-purple-600 text-white font-bold rounded-xl">Sign In & Continue →</button>
             </form>
-
-            <div className="text-center text-xs text-slate-400">
-              {authMode === 'signin' ? (
-                <span>Don't have an account? <button type="button" onClick={() => { setAuthMode('signup'); setAuthError(''); }} className="text-purple-400 font-bold hover:underline">Sign Up here</button></span>
-              ) : (
-                <span>Already have an account? <button type="button" onClick={() => { setAuthMode('signin'); setAuthError(''); }} className="text-purple-400 font-bold hover:underline">Sign In here</button></span>
-              )}
-            </div>
           </div>
         )}
-        {/* Document Verification Sandbox */}
+
+        {/* Selected Scheme Docs & HITL Workflow */}
         {selectedScheme && !activeWorkflow && currentUser && (
-          <div className="bg-[#161f38] border border-slate-700 rounded-3xl p-5 sm:p-7 shadow-2xl space-y-5">
-            <button onClick={() => setSelectedScheme(null)} className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-white font-bold">
-              <ArrowLeft size={14} /> Back to Schemes List
-            </button>
-
-            <div className="border-b border-slate-700 pb-3">
-              <span className="text-[10px] text-purple-400 font-bold uppercase block">Applicant: {currentUser.fullName}</span>
-              <h3 className="text-xl font-black text-white">{selectedScheme.name}</h3>
-              <p className="text-xs text-slate-300 mt-0.5">🔒 Upload the required verified documents for this scheme:</p>
-            </div>
-
+          <div className="bg-[#161f38] border border-slate-700 rounded-3xl p-6 space-y-4">
+            <button onClick={() => setSelectedScheme(null)} className="text-xs text-slate-400 hover:text-white flex items-center gap-1"><ArrowLeft size={14} /> Back</button>
+            <h3 className="text-lg font-bold text-white">{selectedScheme.name}</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {selectedScheme.requiredDocs.map((doc) => {
-                const uploaded = uploadedDocs[doc.id];
-                const error = docErrors[doc.id];
-                return (
-                  <div key={doc.id} className={'p-3.5 rounded-xl border flex flex-col justify-between space-y-2 ' + (error ? 'bg-rose-950/40 border-rose-500/80' : uploaded ? 'bg-emerald-500/10 border-emerald-500/40' : 'bg-[#0d1321] border-slate-700')}>
-                    <div className="flex justify-between items-start">
-                      <h4 className="font-bold text-xs text-white">{doc.name}</h4>
-                      {uploaded ? <span className="text-[10px] bg-emerald-500/20 text-emerald-300 font-bold px-2 py-0.5 rounded-full flex items-center gap-1"><CheckCircle size={10} /> Verified</span> : error ? <span className="text-[10px] bg-rose-500/20 text-rose-300 font-bold px-2 py-0.5 rounded-full flex items-center gap-1"><XCircle size={10} /> Rejected</span> : <span className="text-[10px] bg-amber-500/20 text-amber-300 font-bold px-2 py-0.5 rounded-full">Required</span>}
-                    </div>
-                    {error && <div className="p-1.5 bg-rose-950/80 border border-rose-500/50 rounded-lg text-[10px] text-rose-200">{error}</div>}
-                    {uploaded ? (
-                      <div className="bg-slate-800 p-2 rounded-lg border border-emerald-500/30 flex justify-between items-center text-xs">
-                        <span className="font-medium text-emerald-300 truncate">{uploaded.name}</span>
-                        <label className="text-purple-400 text-[10px] font-bold cursor-pointer hover:underline ml-2">Replace<input type="file" className="hidden" accept="image/*,.pdf,.txt" onChange={e => handleUploadFile(doc, e.target.files[0])} /></label>
-                      </div>
-                    ) : (
-                      <label className="py-2 border-2 border-dashed border-purple-500/40 bg-purple-500/10 text-purple-300 text-center font-bold text-xs rounded-lg cursor-pointer block">
-                        <UploadCloud size={13} className="inline mr-1" /> Upload {doc.name}
-                        <input type="file" className="hidden" accept="image/*,.pdf,.txt" onChange={e => handleUploadFile(doc, e.target.files[0])} />
-                      </label>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-
-            {Object.keys(extractedData).length > 0 && (
-              <div className="p-3 bg-[#0d1321] border border-purple-500/40 rounded-xl space-y-1.5">
-                <span className="text-xs font-bold text-purple-300 flex items-center gap-1"><ScanText size={14} /> Verified Extracted Parameters:</span>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-mono">
-                  {Object.entries(extractedData).map(([k, v]) => (
-                    <div key={k} className="p-2 bg-slate-800 rounded-lg border border-slate-700">
-                      <span className="text-slate-400 block text-[9px]">{k}</span>
-                      <span className="font-bold text-emerald-400 text-xs">{v}</span>
-                    </div>
-                  ))}
+              {selectedScheme.requiredDocs.map((doc) => (
+                <div key={doc.id} className="p-3 bg-[#0d1321] rounded-xl border border-slate-700 flex justify-between items-center text-xs">
+                  <span>{doc.name}</span>
+                  {uploadedDocs[doc.id] ? <span className="text-emerald-400 font-bold">✓ Verified</span> : (
+                    <label className="text-purple-400 font-bold cursor-pointer">
+                      Upload <input type="file" className="hidden" onChange={e => handleUploadFile(doc, e.target.files[0])} />
+                    </label>
+                  )}
                 </div>
-              </div>
-            )}
-
-            <div className="pt-3 flex flex-wrap justify-between items-center gap-3 border-t border-slate-700">
-              <button onClick={handleAutoAttachDemo} className="text-xs text-purple-400 font-bold hover:underline">⚡ Auto-Attach Demo Verified Docs</button>
-              <button onClick={handleStartAgentApply} disabled={selectedScheme.requiredDocs.some(d => !uploadedDocs[d.id] || uploadedDocs[d.id].status !== 'VERIFIED')} className={'px-5 py-2.5 font-bold text-xs rounded-xl transition ' + (selectedScheme.requiredDocs.every(d => uploadedDocs[d.id] && uploadedDocs[d.id].status === 'VERIFIED') ? 'bg-purple-600 text-white cursor-pointer' : 'bg-slate-800 text-slate-500 cursor-not-allowed')}>
-                Launch Portal Auto-Fill for {currentUser.fullName.split(' ')[0]} →
-              </button>
+              ))}
+            </div>
+            <div className="pt-2 flex justify-between items-center">
+              <button onClick={handleAutoAttachDemo} className="text-xs text-purple-400 font-bold hover:underline">⚡ Demo Auto-Attach</button>
+              <button onClick={handleStartAgentApply} className="px-5 py-2.5 bg-purple-600 text-white text-xs font-bold rounded-xl">Launch Auto-Fill →</button>
             </div>
           </div>
         )}
 
-        {/* Live HITL Simulation */}
+        {/* HITL Simulation */}
         {activeWorkflow && (
-          <div className="bg-slate-950 border border-purple-500/50 rounded-2xl p-5 shadow-2xl space-y-4">
-            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-              <h3 className="text-base font-black text-white">{activeWorkflow.name} — Real-time Filling</h3>
-              <button onClick={() => { setActiveWorkflow(null); setSelectedScheme(null); }} className="text-xs text-slate-400 hover:text-white px-2.5 py-1 bg-slate-800 rounded-lg">Close ✕</button>
+          <div className="bg-slate-950 border border-purple-500/50 rounded-2xl p-5 space-y-4">
+            <div className="flex justify-between items-center">
+              <h3 className="text-white font-bold text-sm">{activeWorkflow.name} — Auto-Filling</h3>
+              <button onClick={() => setActiveWorkflow(null)} className="text-xs text-slate-400">Close ✕</button>
             </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-              <div className="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-2 text-xs font-mono">
-                <span className="text-purple-400 font-bold block"><Bot size={14} className="inline mr-1" /> Agent Terminal</span>
-                <div className="text-emerald-400"><Check size={13} className="inline mr-1" /> Beneficiary authenticated: {currentUser?.fullName}</div>
-                {simStep >= 2 && <div className="text-purple-300"><Check size={13} className="inline mr-1" /> Auto-populating verified portal parameters</div>}
-                {simStep >= 3 && <div className="p-2 bg-amber-500/15 border border-amber-500/30 rounded-lg text-amber-300">[HITL] Ready for submission. Enter Gateway OTP.</div>}
-                {simStep === 4 && <div className="p-2 bg-emerald-500/15 border border-emerald-500/30 rounded-lg text-emerald-300 font-bold">✓ Application submitted officially!</div>}
-              </div>
-
-              <div className="lg:col-span-7 bg-white text-slate-900 rounded-xl p-4 space-y-3 shadow-lg">
-                <div className="border-b pb-1.5 flex justify-between items-center"><h4 className="font-bold text-xs">{activeWorkflow.name}</h4><span className="text-[10px] font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded">Govt Portal Gateway</span></div>
-                <div className="space-y-2">
-                  {filledFields.map((f, idx) => (
-                    <div key={idx}><label className="text-[10px] text-slate-500 block">{f.label}</label><div className="p-1.5 rounded text-xs font-mono border bg-purple-50 border-purple-300 font-bold">{f.val}</div></div>
-                  ))}
-                </div>
-                {simStep === 3 && (
-                  <form onSubmit={(e) => { e.preventDefault(); if (portalOtp) { setSimStep(4); setApplicationRef('MH-SHIELD-2026-' + Math.floor(100000 + Math.random() * 900000)); } }} className="p-3 bg-amber-50 border border-amber-300 rounded-lg space-y-2">
-                    <span className="text-xs font-bold text-amber-900 block"><KeyRound size={13} className="inline mr-1" /> Complete Gateway OTP Verification:</span>
-                    <div className="flex gap-2">
-                      <input type="password" required placeholder="123456" value={portalOtp} onChange={e => setPortalOtp(e.target.value)} className="p-1.5 border rounded text-xs bg-white w-32 font-mono outline-none" />
-                      <button type="submit" className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded">Verify & Submit</button>
-                    </div>
-                  </form>
-                )}
-                {simStep === 4 && (
-                  <div className="p-2.5 bg-emerald-50 border border-emerald-300 rounded-lg text-xs">
-                    <span className="font-bold text-emerald-900 block"><CheckCircle size={14} className="inline mr-1" /> Application Submitted!</span>
-                    <div>Application Reference: <b className="font-mono text-slate-900">{applicationRef}</b></div>
-                  </div>
-                )}
-              </div>
+            <div className="space-y-2">
+              {filledFields.map((f, i) => (
+                <div key={i} className="text-xs text-purple-300 font-mono bg-purple-950/40 p-2 rounded border border-purple-800">{f.label}: {f.val}</div>
+              ))}
             </div>
+            {simStep === 3 && (
+              <form onSubmit={(e) => { e.preventDefault(); setSimStep(4); setApplicationRef('MH-SHIELD-' + Math.floor(100000 + Math.random() * 900000)); }} className="flex gap-2">
+                <input type="password" placeholder="OTP 123456" value={portalOtp} onChange={e => setPortalOtp(e.target.value)} className="p-2 text-xs bg-slate-900 border border-slate-700 rounded text-white" />
+                <button type="submit" className="px-3 bg-emerald-600 text-white font-bold text-xs rounded">Verify & Submit</button>
+              </form>
+            )}
+            {simStep === 4 && <div className="text-emerald-400 font-bold text-xs">Submitted! Ref: {applicationRef}</div>}
           </div>
         )}
       </main>
 
+      {/* Footer */}
       <footer className="bg-[#111827] border-t border-slate-800 py-3 text-center text-xs text-slate-400">
-        Sheshield 2.0 • Autonomous Civic AI Platform for All Women
+        Sheshield 2.0 • Autonomous Civic AI Platform
       </footer>
     </div>
   );
