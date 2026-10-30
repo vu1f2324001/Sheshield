@@ -16,9 +16,8 @@ export default function App() {
       return 'en';
     }
   };
-  const API_BASE_URL = 'https://sheshield-8jz3.vercel.app';
-  const [activeView, setActiveView] = useState('home');
 
+  const API_BASE_URL = 'https://sheshield-8jz3.vercel.app';
   const [activeView, setActiveView] = useState('home');
   const [currentUser, setCurrentUser] = useState(null);
   const [selectedLang, setSelectedLang] = useState(getInitialLang);
@@ -100,9 +99,8 @@ export default function App() {
     setSearchStatus('Searching live government network for: "' + rawQuery + '"...');
     setLiveGoogleUrl('https://www.google.com/search?q=' + encodeURIComponent(rawQuery + ' site:mahadbt.maharashtra.gov.in OR site:myscheme.gov.in'));
 
-        try {
-      const backendUrl = 'https://sheshield-8jz3.vercel.app';
-      const res = await fetch(`${backendUrl}/api/live-search-schemes`, {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/live-search-schemes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query: rawQuery })
@@ -349,4 +347,3 @@ export default function App() {
     </div>
   );
 }
-      
